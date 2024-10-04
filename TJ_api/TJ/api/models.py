@@ -27,7 +27,7 @@ class User(models.Model):
     address = models.OneToOneField(Address, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=20)
     email = models.CharField(max_length=20)
-    role = models.CharField(choices=RoleType.choices, default=RoleType.EMPLOYEE)
+    role = models.CharField(max_length=10, choices=RoleType.choices, default=RoleType.EMPLOYEE)
     date_of_hire = models.DateField()
     job_id = models.OneToOneField(Job, on_delete=models.CASCADE)
 

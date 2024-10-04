@@ -1,0 +1,5 @@
+ERD:
+https://lucid.app/lucidchart/013b6572-5ae9-4f4a-bb3d-d02daf6ee185/edit?viewport_loc=-4894%2C4653%2C2528%2C1520%2C0_0&invitationId=inv_4a4705f6-0406-42c7-bb19-8468e7325180
+
+FIGMA PROTOTYPE:
+https://www.figma.com/design/vYqzDNNCFrjzlPUTO85SRz/TJ's?node-id=0-1&t=kUjXV1fHD6GGX0YA-1

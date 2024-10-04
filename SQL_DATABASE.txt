@@ -1,0 +1,68 @@
+CREATE TABLE `Leave` (
+  `Id` INT AUTO_INCREMENT,
+  `UserId` INT,
+  `LeaveType` VARCHAR(50),
+  `StartDate` DATETIME,
+  `EndDate` DATETIME,
+  `Status` VARCHAR(20),
+  PRIMARY KEY (`Id`),
+  FOREIGN KEY (`UserId`) REFERENCES `User`(`Id`)
+);
+
+CREATE TABLE `Attendance` (
+  `Id` INT AUTO_INCREMENT,
+  `UserId` INT,
+  `TimeIn` DATETIME,
+  `AttendanceStatus` VARCHAR(20),
+  `TimeOut` DATETIME,
+  PRIMARY KEY (`Id`),
+  FOREIGN KEY (`UserId`) REFERENCES `User`(`Id`)
+);
+
+CREATE TABLE `Address` (
+  `Id` INT AUTO_INCREMENT,
+  `Street` VARCHAR(255),
+  `City` VARCHAR(100),
+  `Country` VARCHAR(100),
+  `ZipCode` VARCHAR(20),
+  PRIMARY KEY (`Id`)
+);
+
+CREATE TABLE `User` (
+  `Id` INT AUTO_INCREMENT,
+  `FirstName` VARCHAR(50),
+  `LastName` VARCHAR(50),
+  `Email` VARCHAR(100) UNIQUE,
+  `PhoneNumber` VARCHAR(20),
+  `AddressId` INT,
+  `RoleName` VARCHAR(50),
+  `DateOfHire` DATETIME,
+  `Password` VARCHAR(255),
+  `ProfilePath` VARCHAR(255),
+  PRIMARY KEY (`Id`),
+  FOREIGN KEY (`AddressId`) REFERENCES `Address`(`Id`)
+);
+
+CREATE TABLE `Job` (
+  `Id` INT AUTO_INCREMENT,
+  `JobTitle` VARCHAR(100),
+  `JobDescription` TEXT,
+  `DepartmentId` INT,
+  PRIMARY KEY (`Id`),
+  FOREIGN KEY (`DepartmentId`) REFERENCES `Department`(`Id`)
+);
+
+CREATE TABLE `Goal` (
+  `Id` INT AUTO_INCREMENT,
+  `GoalDescription` TEXT,
+  `UserId` INT,
+  `DueDate` DATETIME,
+  PRIMARY KEY (`Id`),
+  FOREIGN KEY (`UserId`) REFERENCES `User`(`Id`)
+);
+
+CREATE TABLE `Department` (
+  `Id` INT AUTO_INCREMENT,
+  `DepartmentName` VARCHAR(100),
+  PRIMARY KEY (`Id`)
+);
