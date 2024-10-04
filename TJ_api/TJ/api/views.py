@@ -1,10 +1,16 @@
 from django.shortcuts import render
-from django.contrib.auth.models import User
-from rest_framework import permissions, viewsets
+from .models import User
+from rest_framework import generics
 from .serializers import UserSerializer
 
 # Create your views here.
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all().order_by('id')
+# user registration
+class UserCreate(generics.CreateAPIView):
+    queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+# Get Users with employee role
+class EmployeeList(generics.ListAPIView):
+    queryset = User.objects.filter(role=User.RoleType.EMPLOYEE)
+
+
