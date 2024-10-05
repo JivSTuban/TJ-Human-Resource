@@ -1,1 +1,4 @@
-django-countries
+crispy-bootstrap5
+django-crispy-forms
+Pillow
+django-filter
