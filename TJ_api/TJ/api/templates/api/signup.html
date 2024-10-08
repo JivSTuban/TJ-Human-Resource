@@ -99,7 +99,7 @@
         }
 
         .form-control:focus {
-            border-color: var (--primary-light);
+            border-color: var(--primary-light);
             box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
         }
 
@@ -136,28 +136,24 @@
                 <div class="col-lg-5 left-panel d-flex flex-column align-items-center justify-content-center rounded-start-4">
                     <h3 class="logo mb-4">TJ's</h3>
                     <div class="px-4 py-5 text-center" style="position: relative; z-index: 1;">
-                        <h1 class="display-5 mb-4 fw-bold">Hello, Friend!</h1>
-                        <p class="lead mb-5 fw-semibold">Enter your personal details<br/>and start your journey with us</p>
+                        <h1 class="display-5 mb-4 fw-bold">Welcome Back!</h1>
+                        <p class="lead mb-5 fw-semibold">To keep connected with us please <br/> login with your personal info</p>
                         <form method="GET">
-                            <a href="{% url 'signup' %}" class="btn btn-light btn-lg px-5 py-3 rounded-3 shadow">
-                                Sign up
+                            <a href="{% url 'login' %}" class="btn btn-light btn-lg px-5 py-3 rounded-3 shadow">
+                                Sign in
                             </a>
                         </form>
                     </div>
                 </div>
                 <div class="col-lg-7 d-flex align-items-center justify-content-center white rounded-end-4">
                     <div class="px-4 py-5 w-100" style="max-width: 500px;">
-                        <h1 class="display-5 mb-4 fw-bold text-center">Sign in to TJ's</h1>
-                        <h5 class="text-muted mb-5 text-center">Good to see you again</h5>
-                        
-                        <form method="POST" action="{% url 'login' %}">
+                        <h1 class="display-5 mb-4 fw-bold text-center">Create Account</h1>
+                        <h5 class="text-muted mb-5 text-center">Use your email for registration</h5>
+                        <form method="post">
                             {% csrf_token %}
                             {{ form|crispy }}
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg px-5 py-3 rounded-3 shadow">Sign in</button>
-                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg w-100">Sign up</button>
                         </form>
-
                         {% if messages %}
                             {% for message in messages %}
                                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">

@@ -14,6 +14,9 @@ from .filters import (
     JobFilter, UserFilter
 )
 
+def landing_view(request):
+    return render(request, 'api/landing.html')
+
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -29,6 +32,20 @@ def login_view(request):
     else:
         form = LoginForm()
     return render(request, 'api/login.html', {'form': form})
+
+def signup_view(request):
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            email = form.cleaned_data.get('email')
+            password = form.cleaned_data.get('password1')
+            user = authenticate(email=email, password=password)
+            login(request, user)
+            return redirect('dashboard')
+    else:
+        form = UserProfileForm()
+    return render(request, 'api/signup.html', {'form': form})
 
 @login_required
 def dashboard(request):
