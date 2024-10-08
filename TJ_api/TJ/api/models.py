@@ -20,6 +20,14 @@ class Department(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Job(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.title} - {self.department}"  
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -66,11 +74,12 @@ class User(AbstractUser):
         message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."
     )
     phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True)
-    address = models.ForeignKey('Address', on_delete=models.SET_NULL, null=True, blank=True)
+    address = models.OneToOneField(Address, on_delete=models.CASCADE, blank=True, null=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='EMPLOYEE')
-    date_of_hire = models.DateField()
+    date_of_hire = models.DateField(blank=True, null=True)
     profile_path = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    job = models.ForeignKey(Job, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Override the groups field
     groups = models.ManyToManyField(
@@ -93,18 +102,12 @@ class User(AbstractUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'date_of_hire']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'date_of_hire', 'password']
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
-class Job(models.Model):
-    title = models.CharField(max_length=100)
-    description = models.TextField()
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f"{self.title} - {self.department}"
 
 class Goal(models.Model):
     description = models.TextField()

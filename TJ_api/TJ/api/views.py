@@ -7,7 +7,7 @@ from django.core.paginator import Paginator
 from .models import User, Department, Job, Goal, Attendance, Leave
 from .forms import (
     LoginForm, UserProfileForm, DepartmentForm, 
-    JobForm, GoalForm, AttendanceForm, LeaveForm
+    JobForm, GoalForm, AttendanceForm, LeaveForm, SignupForm
 )
 from .filters import (
     AttendanceFilter, LeaveFilter, GoalFilter, 
@@ -35,16 +35,17 @@ def login_view(request):
 
 def signup_view(request):
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, request.FILES)
+        form = SignupForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            user = form.save()
             email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password1')
             user = authenticate(email=email, password=password)
-            login(request, user)
-            return redirect('dashboard')
+            if user is not None:
+                login(request, user)
+                return redirect('dashboard')
     else:
-        form = UserProfileForm()
+        form = SignupForm()
     return render(request, 'api/signup.html', {'form': form})
 
 @login_required
