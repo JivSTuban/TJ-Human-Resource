@@ -15,6 +15,9 @@ from .forms import (
     LeaveForm,
     SignupForm,
 )
+from django.views.generic.edit import UpdateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
 from .filters import AttendanceFilter, LeaveFilter, GoalFilter, JobFilter, UserFilter
 
 
@@ -62,6 +65,7 @@ def dashboard(request):
     pending_leaves = Leave.objects.filter(user=user, status="PENDING")
 
     context = {
+        "user": user,
         "recent_goals": recent_goals,
         "recent_attendance": recent_attendance,
         "pending_leaves": pending_leaves,
@@ -71,16 +75,16 @@ def dashboard(request):
 
 @login_required
 def profile(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, "Profile updated successfully.")
-            return redirect("profile")
+            messages.success(request, 'Profile updated successfully')
+            return redirect('profile')
     else:
         form = UserProfileForm(instance=request.user)
     
-    return render(request, "api/profile.html", {"form": form, "user": request.user})
+    return render(request, 'api/profile.html', {'form': form})
 
 
 # Department views
@@ -116,7 +120,7 @@ def edit_department(request, pk):
 
 
 @login_required
-def attendance_list(request):
+def attendance(request):
     attendance_list = Attendance.objects.filter(user=request.user).order_by("-date")
     attendance_filter = AttendanceFilter(request.GET, queryset=attendance_list)
 
@@ -128,7 +132,7 @@ def attendance_list(request):
         "filter": attendance_filter,
         "page_obj": page_obj,
     }
-    return render(request, "api/attendance_list.html", context)
+    return render(request, "api/attendance.html", context)
 
 
 @login_required

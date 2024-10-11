@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
-
+from PIL import Image
 
 class Address(models.Model):
     street = models.CharField(max_length=255)
@@ -84,7 +84,7 @@ class User(AbstractUser):
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="EMPLOYEE")
     date_of_hire = models.DateField(blank=True, null=True)
-    profile_path = models.ImageField(upload_to="profile_pics/", null=True, blank=True)
+    profile_path = models.ImageField(upload_to="./profile_pics", null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
     job = models.ForeignKey(Job, on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -113,6 +113,16 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.profile_path:
+            img = Image.open(self.profile_path.path)
+
+            output_size = (300, 300)
+            img.thumbnail(output_size)
+            img.save(self.profile_path.path)
 
 
 class Goal(models.Model):

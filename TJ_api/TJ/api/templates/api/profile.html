@@ -1,5 +1,82 @@
 {% extends "api/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profile{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .profile-container {
+            padding: 20px;
+        }
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .profile-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .profile-form .form-group {
+            margin-bottom: 15px;
+        }
+        .profile-form .form-control {
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+        }
+        .profile-form .form-control:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        .profile-form .form-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .profile-form .btn-primary {
+            background-color: var(--primary-light);
+            border-color: var(--primary-light);
+            transition: all 0.3s ease;
+        }
+        .profile-form .btn-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .profile-form .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+        }
+    </style>
+{% endblock extra_css %}
 
 {% block content %}
-
+    <div class="profile-container p-4">
+        <div class="profile-header">
+            <h1>Profile</h1>
+            <p>Update your profile information below.</p>
+        </div>
+        <div class="profile-form">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">Update Profile</button>
+                </div>
+            </form>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
 {% endblock content %}

@@ -27,7 +27,7 @@ urlpatterns = [
     path("goals/add/", views.add_goal, name="add_goal"),
     path("goals/<int:pk>/edit/", views.edit_goal, name="edit_goal"),
     # Attendance URLs
-    path("attendance/", views.attendance_list, name="attendance_list"),
+    path("attendance/", views.attendance, name="attendance"),
     path("attendance/mark/", views.mark_attendance, name="mark_attendance"),
     # Leave URLs
     path("leaves/", views.leave_list, name="leave_list"),

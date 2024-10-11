@@ -51,6 +51,17 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
+        .form-control {
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control:focus {
+            border-color: var (--primary-light);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
         .logo {
             font-family: 'Paytone One', sans-serif;
             font-weight: 400;
@@ -69,17 +80,6 @@
             height: auto;
             padding: 10px;
             font-size: clamp(32px, 8vw, 64px);
-        }
-
-        .form-control {
-            border-radius: 0.5rem;
-            border: 1px solid #e2e8f0;
-            padding: 0.75rem 1rem;
-        }
-
-        .form-control:focus {
-            border-color: var (--primary-light);
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
         }
 
         @media (max-width: 991px) {

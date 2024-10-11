@@ -1,4 +1,6 @@
 {% extends "api/base.html" %}
+{% load static %}
+{% block title %}Dashboard{% endblock title %}Dashboard
 {% block extra_css %}
     
     .main-content {
@@ -39,17 +41,27 @@
         color: #6b7280;
         margin-right: 10px;
     }
+    .profile-image {
+        width: 50px;  
+        height: 50px;
+        object-fit: cover; 
+        border-radius: 50%;  
+    }
 {% endblock extra_css %}
 
 {% block content %}
             <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
                     <button class="btn btn-primary">View company page</button>
                     <div class="d-flex align-items-center">
                         <input type="text" class="form-control me-2" placeholder="Search">
                         <i class="fas fa-share-alt fs-4 me-3"></i>
-                        <i class="fas fa-user-circle fs-4"></i>
+                        {% if user.profile_path %}
+                            <a href="{% url 'profile' %}" style="cursor: pointer;  width: 50px;  height: 50px;" ><img src="{{ user.profile_path.url }}" alt="Profile Picture" class="profile-image"></a>
+                        {% else %}
+                            <!-- Default image if no profile picture is uploaded -->
+                            <a href="{% url 'profile' %}" style="cursor: pointer;  width: 50px;  height: 50px;" ><img src="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg" alt="Profile Picture" class="profile-image"></a>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -197,5 +209,4 @@
                         </tbody>
                     </table>
                 </div>
-            </main>
 {% endblock  %}
