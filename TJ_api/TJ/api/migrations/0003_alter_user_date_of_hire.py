@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('api', '0002_alter_user_managers_user_job_alter_user_address'),
+        ("api", "0002_alter_user_managers_user_job_alter_user_address"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='date_of_hire',
+            model_name="user",
+            name="date_of_hire",
             field=models.DateField(blank=True, null=True),
         ),
     ]
