@@ -15,9 +15,6 @@ from .forms import (
     LeaveForm,
     SignupForm,
 )
-from django.views.generic.edit import UpdateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
 from .filters import AttendanceFilter, LeaveFilter, GoalFilter, JobFilter, UserFilter
 
 
@@ -53,7 +50,7 @@ def signup_view(request):
             return redirect("login")
     else:
         form = SignupForm()
-    
+
     return render(request, "api/signup.html", {"form": form})
 
 
@@ -75,16 +72,16 @@ def dashboard(request):
 
 @login_required
 def profile(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = UserProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Profile updated successfully')
-            return redirect('profile')
+            messages.success(request, "Profile updated successfully")
+            return redirect("profile")
     else:
         form = UserProfileForm(instance=request.user)
-    
-    return render(request, 'api/profile.html', {'form': form})
+
+    return render(request, "api/profile.html", {"form": form})
 
 
 # Department views

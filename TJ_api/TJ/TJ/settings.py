@@ -53,6 +53,9 @@ AUTH_USER_MODEL = "api.User"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Redirect to login page after logout
+LOGOUT_REDIRECT_URL = 'login'
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",

@@ -1,14 +1,16 @@
 # api/urls.py (app-level URLs)
 
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path
 from . import views
-from django.contrib.auth import views as auth_views
+from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
     path("", views.landing_view, name="landing"),
     # Authentication URLs
     path("login/", views.login_view, name="login"),
-    path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
+    path("logout/", LogoutView.as_view(), name="logout"),
     path("signup/", views.signup_view, name="signup"),
     # Dashboard
     path("dashboard/", views.dashboard, name="dashboard"),
@@ -34,3 +36,6 @@ urlpatterns = [
     path("leaves/request/", views.request_leave, name="request_leave"),
     path("leaves/<int:pk>/", views.leave_detail, name="leave_detail"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
