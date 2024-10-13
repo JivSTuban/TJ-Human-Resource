@@ -56,6 +56,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Redirect to login page after logout
 LOGOUT_REDIRECT_URL = "login"
 
+
+LOGIN_URL = "/login/"
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -64,6 +67,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "api.middleware.LoginRequiredMiddleware",
+]
+
+LOGIN_EXEMPT_ROUTES = [
+    "login",
+    "signup",
 ]
 
 ROOT_URLCONF = "TJ.urls"

@@ -48,12 +48,16 @@
         border-radius: 10px;
         cursor: pointer;
       }
+      .sidebar .nav-link.active {
+        background-color: #1B3A88;
+        border-radius: 10px;
+      }
       .logo {
         font-family: 'Paytone One', sans-serif;
         font-weight: 400;
         color: var(--primary-color);
         font-size: 3rem;
-        padding: 10px;
+        padding: 20px;
         margin-bottom: 20px;
       }
       .main-content {
@@ -85,6 +89,14 @@
         .logo-mobile {
           font-size: 1.5rem;
         }
+        .logo {
+          font-family: 'Paytone One', sans-serif;
+          font-weight: 400;
+          color: var(--primary-color);
+          font-size: 3rem;
+          padding: 15px;
+          margin-bottom: 20px;
+        }
       }
       {% block extra_css %}
       {% endblock extra_css %}
@@ -99,6 +111,9 @@
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#sidebarMenu"
+          aria-controls="sidebarMenu"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
         >
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -116,34 +131,37 @@
             <h2 class="logo d-none d-md-block">TJ's</h2>
             <ul class="nav flex-column">
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'dashboard' %}"
-                  ><i class="fas fa-th-large me-2"></i> Dashboard</a
-                >
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                  <i class="fas fa-th-large me-2"></i> Dashboard
+                </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'attendance' %}"
-                  ><i class="fas fa-calendar-alt me-2"></i> Attendance</a
-                >
+                <a class="nav-link {% if request.resolver_match.url_name == 'attendance' %}active{% endif %}" href="{% url 'attendance' %}">
+                  <i class="fas fa-calendar-alt me-2"></i> Attendance
+                </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'dashboard' %}"
-                  ><i class="fa-solid fa-umbrella-beach me-2"></i> Leave</a
-                >
+                <a class="nav-link {% if request.resolver_match.url_name == 'leaves' %}active{% endif %}" href="{% url 'leaves' %}">
+                  <i class="fa-solid fa-umbrella-beach me-2"></i> Leaves
+                </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'profile' %}"
-                  ><i class="fas fa-chart-line me-2"></i> Profile</a
-                >
+                <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'profile' %}">
+                  <i class="fas fa-chart-line me-2"></i> Profile
+                </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'goal_list' %}"
-                  ><i class="fas fa-bullseye me-2"></i> Goals</a
-                >
+                <a class="nav-link {% if request.resolver_match.url_name == 'goal_list' %}active{% endif %}" href="{% url 'goal_list' %}">
+                  <i class="fas fa-bullseye me-2"></i> Goals
+                </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'logout' %}"
-                  ><i class="fas fa-sign-out-alt me-2"></i> Logout</a
-                >
+                  <a class="nav-link" href="{% url 'logout' %}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                      <i class="fas fa-sign-out-alt me-2"></i> Logout
+                  </a>
+                  <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: none;">
+                      {% csrf_token %}
+                  </form>
               </li>
             </ul>
           </div>
@@ -163,7 +181,19 @@
         sidebarToggle.addEventListener("click", function () {
           sidebar.classList.toggle("show");
         });
+
+        // Close sidebar when clicking outside of it
+        document.addEventListener("click", function (event) {
+          var isClickInsideSidebar = sidebar.contains(event.target);
+          var isClickOnToggle = sidebarToggle.contains(event.target);
+
+          if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains("show")) {
+            sidebar.classList.remove("show");
+          }
+        });
       });
     </script>
+    {% block extra_js %}
+    {% endblock extra_js %}
   </body>
 </html>

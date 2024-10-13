@@ -10,7 +10,7 @@ urlpatterns = [
     path("", views.landing_view, name="landing"),
     # Authentication URLs
     path("login/", views.login_view, name="login"),
-    path("logout/", LogoutView.as_view(), name="logout"),
+    path("logout/", LogoutView.as_view(next_page="login"), name="logout"),
     path("signup/", views.signup_view, name="signup"),
     # Dashboard
     path("dashboard/", views.dashboard, name="dashboard"),
@@ -32,9 +32,11 @@ urlpatterns = [
     path("attendance/", views.attendance, name="attendance"),
     path("attendance/mark/", views.mark_attendance, name="mark_attendance"),
     # Leave URLs
-    path("leaves/", views.leave_list, name="leave_list"),
+    path("leaves/", views.leave_list, name="leaves"),
+    path('leaves/<int:pk>/edit/', views.edit_leave, name='edit_leave'),
     path("leaves/request/", views.request_leave, name="request_leave"),
     path("leaves/<int:pk>/", views.leave_detail, name="leave_detail"),
+    path("leaves/<int:pk>/delete/", views.delete_leave, name="delete_leave"),
 ]
 
 if settings.DEBUG:

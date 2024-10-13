@@ -4,6 +4,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.contrib.auth import update_session_auth_hash
 from .models import User, Department, Job, Goal, Attendance, Leave
 from .forms import (
     LoginForm,
@@ -75,8 +76,10 @@ def profile(request):
     if request.method == "POST":
         form = UserProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Profile updated successfully")
+            user = form.save()
+            # Update session to prevent logout on password change
+            update_session_auth_hash(request, user)
+            messages.success(request, "Your profile was successfully updated.")
             return redirect("profile")
     else:
         form = UserProfileForm(instance=request.user)
@@ -150,22 +153,84 @@ def mark_attendance(request):
 
     return render(request, "api/attendance.html", {"form": form})
 
-
+# leave views
 @login_required
 def leave_list(request):
-    leave_list = Leave.objects.filter(user=request.user).order_by("-start_date")
-    leave_filter = LeaveFilter(request.GET, queryset=leave_list)
+    leaves = Leave.objects.filter(user=request.user)
+    leave_filter = LeaveFilter(request.GET, queryset=leaves)
+    filtered_leaves = leave_filter.qs
 
-    paginator = Paginator(leave_filter.qs, 10)
-    page_number = request.GET.get("page")
+    paginator = Paginator(filtered_leaves, 10)  # Show 10 leaves per page
+    page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    context = {
-        "filter": leave_filter,
-        "page_obj": page_obj,
-    }
-    return render(request, "api/leave_list.html", context)
+    # Create a form instance for each leave request
+    edit_leave_forms = {leave.id: LeaveForm(instance=leave) for leave in leaves}
 
+    context = {
+        'page_obj': page_obj,
+        'edit_leave_forms': edit_leave_forms,
+        'add_leave_form': LeaveForm(),
+        'filter': leave_filter,
+    }
+    return render(request, 'api/leaves.html', context)
+
+@login_required
+def edit_leave(request, pk):
+    leave = get_object_or_404(Leave, pk=pk, user=request.user)
+    if leave.status != "PENDING":
+        messages.error(request, "You cannot edit a leave request that is not pending.")
+        return redirect("leaves")
+
+    if request.method == "POST":
+        form = LeaveForm(request.POST, instance=leave)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Leave request updated successfully.")
+            return redirect("leaves")
+    else:
+        form = LeaveForm(instance=leave)
+    return render(request, 'api/leave_detail.html', {'form': form})
+
+@login_required
+def request_leave(request):
+    if request.method == "POST":
+        form = LeaveForm(request.POST)
+        if form.is_valid():
+            leave = form.save(commit=False)
+            leave.user = request.user  # Set the current user as the leave requester
+            leave.save()
+            messages.success(request, "Leave request submitted successfully.")
+            return redirect("leaves")
+    return redirect("leaves")
+
+@login_required
+def leave_detail(request, pk):
+    leave = get_object_or_404(
+        Leave, pk=pk, user=request.user
+    )  # Ensure the leave belongs to the current user
+    if leave.status != "PENDING":
+        messages.error(request, "You cannot edit a leave request that is not pending.")
+        return redirect("leaves")
+
+    if request.method == "POST":
+        form = LeaveForm(request.POST, instance=leave)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Leave request updated successfully.")
+            return redirect("leaves")
+    else:
+        form = LeaveForm(instance=leave)
+    return render(request, 'api/leave_detail.html', {'form': form})
+
+@login_required
+def delete_leave(request, pk):
+    leave = get_object_or_404(Leave, pk=pk, user=request.user)
+    if request.method == 'POST':
+        leave.delete()
+        messages.success(request, "Leave request deleted successfully.")
+        return redirect('leaves')
+    return render(request, 'api/leave_confirm_delete.html', {'leave': leave})
 
 @login_required
 def goal_list(request):
@@ -290,59 +355,3 @@ def user_list(request):
         "page_obj": page_obj,
     }
     return render(request, "api/user_list.html", context)
-
-
-# Create Leave
-@login_required
-def request_leave(request):
-    if request.method == "POST":
-        form = LeaveForm(request.POST)
-        if form.is_valid():
-            leave = form.save(commit=False)
-            leave.user = request.user  # Set the current user as the leave requester
-            leave.save()
-            messages.success(request, "Leave request submitted successfully.")
-            return redirect("leave_list")
-    else:
-        form = LeaveForm()
-    return render(request, "api/leave_form.html", {"form": form})
-
-
-# Edit Leave
-@login_required
-def leave_detail(request, pk):
-    leave = get_object_or_404(
-        Leave, pk=pk, user=request.user
-    )  # Ensure the leave belongs to the current user
-    if leave.status != "PENDING":
-        messages.error(request, "You cannot edit a leave request that is not pending.")
-        return redirect("leave_list")
-
-    if request.method == "POST":
-        form = LeaveForm(request.POST, instance=leave)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Leave request updated successfully.")
-            return redirect("leave_list")
-    else:
-        form = LeaveForm(instance=leave)
-    return render(request, "api/leave_form.html", {"form": form})
-
-
-# Delete Leave
-@login_required
-def delete_leave(request, pk):
-    leave = get_object_or_404(Leave, pk=pk, user=request.user)
-    if leave.status != "PENDING":
-        messages.error(
-            request, "You cannot delete a leave request that is not pending."
-        )
-        return redirect("leave_list")
-
-    if request.method == "POST":
-        leave.delete()
-        messages.success(request, "Leave request deleted successfully.")
-        return redirect("leave_list")
-    return render(
-        request, "api/confirm_delete.html", {"object": leave, "type": "leave"}
-    )

@@ -38,6 +38,25 @@ class UserProfileForm(forms.ModelForm):
         label="Zip Code",
         required=False,
     )
+    profile_picture = forms.ImageField(
+        widget=forms.FileInput(attrs={"class": "form-control"}),
+        label="Profile Picture",
+        required=False,
+    )
+    new_password = forms.CharField(
+        widget=forms.PasswordInput(
+            attrs={"class": "form-control", "id": "new_password"}
+        ),
+        label="New Password",
+        required=False,
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(
+            attrs={"class": "form-control", "id": "confirm_password"}
+        ),
+        label="Confirm New Password",
+        required=False,
+    )
 
     class Meta:
         model = User
@@ -47,8 +66,10 @@ class UserProfileForm(forms.ModelForm):
             "email",
             "phone_number",
             "date_of_hire",
-            "profile_path",
+            "profile_picture",
             "job",
+            'new_password',
+            'confirm_password',
         ]
         widgets = {
             "date_of_hire": forms.DateInput(
@@ -60,9 +81,7 @@ class UserProfileForm(forms.ModelForm):
         super(UserProfileForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = "post"
-        self.helper.attrs = {
-            "enctype": "multipart/form-data"
-        }  # Add this for file upload
+        self.helper.attrs = {"enctype": "multipart/form-data"}
         self.helper.add_input(Submit("submit", "Update Profile"))
 
         # Initialize address fields if user has an address
@@ -71,6 +90,16 @@ class UserProfileForm(forms.ModelForm):
             self.fields["city"].initial = self.instance.address.city
             self.fields["country"].initial = self.instance.address.country
             self.fields["zip_code"].initial = self.instance.address.zip_code
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get("new_password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if new_password and new_password != confirm_password:
+            raise forms.ValidationError("The new passwords do not match.")
+
+        return cleaned_data
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -92,6 +121,11 @@ class UserProfileForm(forms.ModelForm):
             # Create new address
             address = Address.objects.create(**address_data)
             user.address = address
+
+        # Handle password change
+        new_password = self.cleaned_data.get("new_password")
+        if new_password:
+            user.set_password(new_password)
 
         if commit:
             user.save()
@@ -170,10 +204,25 @@ class AttendanceForm(forms.ModelForm):
 
 
 class LeaveForm(forms.ModelForm):
+    leave_type = forms.ChoiceField(
+        choices=Leave.LEAVE_TYPES,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Leave Type",
+    )
+    start_date = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+        label="Start Date",
+    )
+    end_date = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+        label="End Date",
+    )
+    reason = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control"}),
+        label="Reason",
+        required=True,
+    )
+
     class Meta:
         model = Leave
-        fields = ["leave_type", "start_date", "end_date", "status"]
-        widgets = {
-            "start_date": forms.DateTimeInput(attrs={"type": "datetime-local"}),
-            "end_date": forms.DateTimeInput(attrs={"type": "datetime-local"}),
-        }
+        fields = ["leave_type", "start_date", "end_date", "reason"]

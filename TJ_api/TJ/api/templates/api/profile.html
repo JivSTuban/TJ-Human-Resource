@@ -52,6 +52,26 @@
             border: none;
             font-size: 1.2rem;
         }
+        .profile-image-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .profile-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        @media (max-width: 768px) {
+            .profile-form {
+                padding: 15px;
+            }
+            .profile-image {
+                width: 80px;
+                height: 80px;
+            }
+        }
     </style>
 {% endblock extra_css %}
 
@@ -62,6 +82,13 @@
             <p>Update your profile information below.</p>
         </div>
         <div class="profile-form">
+            <div class="profile-image-container">
+                {% if user.profile_path %}
+                    <img src="{{ user.profile_path.url }}" alt="Profile Picture" class="profile-image">
+                {% else %}
+                    <img src="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg" alt="Profile Picture" class="profile-image">
+                {% endif %}
+            </div>
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form|crispy }}

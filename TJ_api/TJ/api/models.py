@@ -176,6 +176,7 @@ class Leave(models.Model):
     leave_type = models.CharField(max_length=50, choices=LEAVE_TYPES)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
+    reason = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -1,32 +1,35 @@
 # api/filters.py
 
 import django_filters
+from django.forms.widgets import DateInput
 from .models import User, Department, Job, Goal, Attendance, Leave
 
 
 class AttendanceFilter(django_filters.FilterSet):
-    date_range = django_filters.DateFromToRangeFilter(
-        field_name="date",
-        widget=django_filters.widgets.RangeWidget(attrs={"type": "date"}),
-    )
-    status = django_filters.ChoiceFilter(choices=Attendance.STATUS_CHOICES)
+    first_name = django_filters.CharFilter(field_name='user__first_name', lookup_expr='icontains', label='First Name')
+    last_name = django_filters.CharFilter(field_name='user__last_name', lookup_expr='icontains', label='Last Name')
+    date = django_filters.DateFilter(field_name='date', lookup_expr='exact', label='Date', widget=DateInput(attrs={"type": "date"}))
 
     class Meta:
         model = Attendance
-        fields = ["date_range", "status"]
+        fields = ['first_name', 'last_name', 'date']
 
 
 class LeaveFilter(django_filters.FilterSet):
-    date_range = django_filters.DateFromToRangeFilter(
+    start_date = django_filters.DateFilter(
         field_name="start_date",
-        widget=django_filters.widgets.RangeWidget(attrs={"type": "date"}),
+        widget=DateInput(attrs={"type": "date"}),
+    )
+    end_date = django_filters.DateFilter(
+        field_name="end_date",
+        widget=DateInput(attrs={"type": "date"}),
     )
     leave_type = django_filters.ChoiceFilter(choices=Leave.LEAVE_TYPES)
     status = django_filters.ChoiceFilter(choices=Leave.STATUS_CHOICES)
 
     class Meta:
         model = Leave
-        fields = ["date_range", "leave_type", "status"]
+        fields = ["start_date", "end_date", "leave_type", "status"]
 
 
 class GoalFilter(django_filters.FilterSet):
