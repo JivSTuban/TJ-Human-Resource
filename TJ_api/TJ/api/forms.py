@@ -7,6 +7,7 @@ from .models import Address
 
 User = get_user_model()
 
+
 class LoginForm(forms.Form):
     email = forms.EmailField(label="Email")
     password = forms.CharField(widget=forms.PasswordInput, label="Password")
@@ -50,34 +51,38 @@ class UserProfileForm(forms.ModelForm):
             "job",
         ]
         widgets = {
-            "date_of_hire": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "date_of_hire": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super(UserProfileForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_method = 'post'
-        self.helper.attrs = {'enctype': 'multipart/form-data'}  # Add this for file upload
-        self.helper.add_input(Submit('submit', 'Update Profile'))
+        self.helper.form_method = "post"
+        self.helper.attrs = {
+            "enctype": "multipart/form-data"
+        }  # Add this for file upload
+        self.helper.add_input(Submit("submit", "Update Profile"))
 
         # Initialize address fields if user has an address
         if self.instance and self.instance.address:
-            self.fields['street'].initial = self.instance.address.street
-            self.fields['city'].initial = self.instance.address.city
-            self.fields['country'].initial = self.instance.address.country
-            self.fields['zip_code'].initial = self.instance.address.zip_code
+            self.fields["street"].initial = self.instance.address.street
+            self.fields["city"].initial = self.instance.address.city
+            self.fields["country"].initial = self.instance.address.country
+            self.fields["zip_code"].initial = self.instance.address.zip_code
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        
+
         # Handle address
         address_data = {
-            'street': self.cleaned_data['street'],
-            'city': self.cleaned_data['city'],
-            'country': self.cleaned_data['country'],
-            'zip_code': self.cleaned_data['zip_code']
+            "street": self.cleaned_data["street"],
+            "city": self.cleaned_data["city"],
+            "country": self.cleaned_data["country"],
+            "zip_code": self.cleaned_data["zip_code"],
         }
-        
+
         if user.address:
             # Update existing address
             for key, value in address_data.items():
@@ -87,14 +92,20 @@ class UserProfileForm(forms.ModelForm):
             # Create new address
             address = Address.objects.create(**address_data)
             user.address = address
-        
+
         if commit:
             user.save()
         return user
 
+
 class SignupForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "form-control"}), label="Password")
-    password_confirm = forms.CharField(widget=forms.PasswordInput(attrs={"class": "form-control"}), label="Confirm Password")
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control"}), label="Password"
+    )
+    password_confirm = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control"}),
+        label="Confirm Password",
+    )
 
     class Meta:
         model = User
