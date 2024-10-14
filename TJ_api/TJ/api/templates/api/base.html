@@ -67,6 +67,19 @@
       .navbar-toggler {
         display: none;
       }
+      .welcome-message {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .welcome-message h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0;
+        color: #ffffff;
+        font-weight: 500;
+      }
       @media (max-width: 767.98px) {
         .sidebar {
           position: fixed;
@@ -96,6 +109,9 @@
           font-size: 3rem;
           padding: 15px;
           margin-bottom: 20px;
+        }
+        .welcome-message {
+          margin: 0 15px 20px;
         }
       }
     </style>
@@ -128,7 +144,12 @@
           class="col-md-3 col-lg-2 d-md-block sidebar collapse"
         >
           <div class="position-sticky">
-            <h2 class="logo d-none d-md-block">TJ's</h2>
+            <div class="logo">
+              TJ's
+            </div>
+            <div class="welcome-message">
+              <h3>Welcome, {{ request.user.first_name|capfirst }}</h3>
+            </div>
             <ul class="nav flex-column">
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
@@ -151,7 +172,7 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'goal_list' %}active{% endif %}" href="{% url 'goal_list' %}">
+                <a class="nav-link {% if request.resolver_match.url_name == 'goals' %}active{% endif %}" href="{% url 'goals' %}">
                   <i class="fas fa-bullseye me-2"></i> Goals
                 </a>
               </li>

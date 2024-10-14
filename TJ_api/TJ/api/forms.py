@@ -1,9 +1,9 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Department, Job, Goal, Attendance, Leave
+from .models import Department, Job, Goal, Attendance, Leave, Address
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
-from .models import Address
+
 
 User = get_user_model()
 

@@ -71,16 +71,19 @@ MIDDLEWARE = [
 ]
 
 LOGIN_EXEMPT_ROUTES = [
+    "landing",
     "login",
     "signup",
 ]
 
 ROOT_URLCONF = "TJ.urls"
 
+TEMPLATES_DIR = '/Users/jeremiatuban/Desktop/coding/Django/TJ-Human-Resource/TJ_api/TJ/api/templates/api'
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [TEMPLATES_DIR],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -131,7 +134,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Manila"
 
 USE_I18N = True
 

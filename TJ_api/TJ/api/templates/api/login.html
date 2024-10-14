@@ -1,4 +1,4 @@
-{% extends "api/hero_base.html" %}
+{% extends "hero_base.html" %}
 {% load crispy_forms_tags %}
 
 {% block title %}TJ's - Sign In{% endblock %}
@@ -105,6 +105,10 @@
         background-color: #f8f9fa !important; /* Ensure the light background */
         color: #212529 !important; /* Ensure the text color is dark */
         }  
+      
+        .asteriskField {
+            display: none; !important
+        }
     </style>
 {% endblock %}
 

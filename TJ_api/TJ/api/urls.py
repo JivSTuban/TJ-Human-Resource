@@ -25,9 +25,10 @@ urlpatterns = [
     path("jobs/add/", views.add_job, name="add_job"),
     path("jobs/<int:pk>/edit/", views.edit_job, name="edit_job"),
     # Goal URLs
-    path("goals/", views.goal_list, name="goal_list"),
+    path("goals/", views.goal_list, name="goals"),
     path("goals/add/", views.add_goal, name="add_goal"),
     path("goals/<int:pk>/edit/", views.edit_goal, name="edit_goal"),
+    path("goals/<int:pk>/delete/", views.delete_goal, name="delete_goal"),
     # Attendance URLs
     path("attendance/", views.attendance, name="attendance"),
     path("attendance/mark/", views.mark_attendance, name="mark_attendance"),

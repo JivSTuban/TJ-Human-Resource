@@ -1,4 +1,4 @@
-{% extends "api/base.html" %}
+{% extends "base.html" %}
 {% load static %}
 {% block title %}Dashboard{% endblock title %}Dashboard
 {% block extra_css %}
@@ -47,6 +47,10 @@
             object-fit: cover; 
             border-radius: 50%;  
         }
+        .asteriskField {
+            display: none; !important
+        }
+
     </style>
 {% endblock extra_css %}
 

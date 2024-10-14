@@ -2,6 +2,8 @@ from datetime import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
+from .decorators import manager_required
+from django.contrib.messages import get_messages
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.contrib.auth import update_session_auth_hash
@@ -20,7 +22,7 @@ from .filters import AttendanceFilter, LeaveFilter, GoalFilter, JobFilter, UserF
 
 
 def landing_view(req):
-    return render(req, "api/landing.html")
+    return render(req, "landing.html")
 
 
 def login_view(request):
@@ -37,7 +39,11 @@ def login_view(request):
                 messages.error(request, "Invalid email or password.")
     else:
         form = LoginForm()
-    return render(request, "api/login.html", {"form": form})
+
+    storage = get_messages(request)
+    for _ in storage:
+        pass
+    return render(request, "login.html", {"form": form})
 
 
 def signup_view(request):
@@ -52,7 +58,11 @@ def signup_view(request):
     else:
         form = SignupForm()
 
-    return render(request, "api/signup.html", {"form": form})
+    storage = get_messages(request)
+    for _ in storage:
+        pass
+
+    return render(request, "signup.html", {"form": form})
 
 
 @login_required
@@ -68,7 +78,7 @@ def dashboard(request):
         "recent_attendance": recent_attendance,
         "pending_leaves": pending_leaves,
     }
-    return render(request, "api/dashboard.html", context)
+    return render(request, "dashboard.html", context)
 
 
 @login_required
@@ -83,14 +93,18 @@ def profile(request):
             return redirect("profile")
     else:
         form = UserProfileForm(instance=request.user)
-    return render(request, "api/profile.html", {"form": form})
+
+    storage = get_messages(request)
+    for _ in storage:
+        pass
+    return render(request, "profile.html", {"form": form})
 
 
 # Department views
 @login_required
 def department_list(request):
     departments = Department.objects.all()
-    return render(request, "api/department_list.html", {"departments": departments})
+    return render(request, "department_list.html", {"departments": departments})
 
 
 @login_required
@@ -102,7 +116,7 @@ def add_department(request):
             return redirect("department_list")
     else:
         form = DepartmentForm()
-    return render(request, "api/department_form.html", {"form": form})
+    return render(request, "department_form.html", {"form": form})
 
 
 @login_required
@@ -115,12 +129,11 @@ def edit_department(request, pk):
             return redirect("department_list")
     else:
         form = DepartmentForm(instance=department)
-    return render(request, "api/department_form.html", {"form": form})
+    return render(request, "department_form.html", {"form": form})
 
-
-@login_required
+@manager_required
 def attendance(request):
-    attendance_list = Attendance.objects.filter(user=request.user).order_by("-date")
+    attendance_list = Attendance.objects.all().order_by("-time_in")
     attendance_filter = AttendanceFilter(request.GET, queryset=attendance_list)
 
     paginator = Paginator(attendance_filter.qs, 10)  # Show 10 records per page
@@ -131,7 +144,7 @@ def attendance(request):
         "filter": attendance_filter,
         "page_obj": page_obj,
     }
-    return render(request, "api/attendance.html", context)
+    return render(request, "attendance.html", context)
 
 
 @login_required
@@ -150,12 +163,16 @@ def mark_attendance(request):
     else:
         form = AttendanceForm(instance=attendance)
 
-    return render(request, "api/attendance.html", {"form": form})
+    storage = get_messages(request)
+    for _ in storage:
+        pass
+
+    return render(request, "attendance.html", {"form": form})
 
 # leave views
 @login_required
 def leave_list(request):
-    leaves = Leave.objects.filter(user=request.user).order_by("-start_date")
+    leaves = Leave.objects.filter(user=request.user).order_by("-status")
     leave_filter = LeaveFilter(request.GET, queryset=leaves)
     filtered_leaves = leave_filter.qs
 
@@ -172,7 +189,7 @@ def leave_list(request):
         'add_leave_form': LeaveForm(),
         'filter': leave_filter,
     }
-    return render(request, 'api/leaves.html', context)
+    return render(request, 'leaves.html', context)
 
 @login_required
 def edit_leave(request, pk):
@@ -189,7 +206,8 @@ def edit_leave(request, pk):
             return redirect("leaves")
     else:
         form = LeaveForm(instance=leave)
-    return render(request, 'api/leave_detail.html', {'form': form})
+
+    return render(request, 'leave_detail.html', {'form': form})
 
 @login_required
 def request_leave(request):
@@ -199,8 +217,11 @@ def request_leave(request):
             leave = form.save(commit=False)
             leave.user = request.user  # Set the current user as the leave requester
             leave.save()
-            messages.success(request, "Leave request submitted successfully.")
             return redirect("leaves")
+        
+    storage = get_messages(request)
+    for _ in storage:
+        pass
     return redirect("leaves")
 
 @login_required
@@ -220,7 +241,11 @@ def leave_detail(request, pk):
             return redirect("leaves")
     else:
         form = LeaveForm(instance=leave)
-    return render(request, 'api/leave_detail.html', {'form': form})
+
+    storage = get_messages(request)
+    for _ in storage:
+        pass
+    return render(request, 'leave_detail.html', {'form': form})
 
 @login_required
 def delete_leave(request, pk):
@@ -229,66 +254,70 @@ def delete_leave(request, pk):
         leave.delete()
         messages.success(request, "Leave request deleted successfully.")
         return redirect('leaves')
-    return render(request, 'api/leave_confirm_delete.html', {'leave': leave})
+    storage = get_messages(request)
+    for _ in storage:
+        pass
+    return render(request, 'leave_confirm_delete.html', {'leave': leave})
+
+# Goal views
 
 @login_required
 def goal_list(request):
-    goal_list = Goal.objects.filter(user=request.user).order_by("-due_date")
-    goal_filter = GoalFilter(request.GET, queryset=goal_list)
+    goals = Goal.objects.filter(user=request.user).order_by("-due_date")
+    goal_filter = GoalFilter(request.GET, queryset=goals)
 
     paginator = Paginator(goal_filter.qs, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
+    # Create a form instance for each goal
+    edit_goal_forms = {goal.id: GoalForm(instance=goal) for goal in goals}
+
     context = {
-        "filter": goal_filter,
         "page_obj": page_obj,
+        "edit_goal_forms": edit_goal_forms,
+        "add_goal_form": GoalForm(),
+        "filter": goal_filter,
     }
-    return render(request, "api/goals.html", context)
+    return render(request, "goals.html", context)
 
-
-# Create Goal
 @login_required
-def add_goal(request):
-    if request.method == "POST":
-        form = GoalForm(request.POST)
-        if form.is_valid():
-            goal = form.save(commit=False)
-            goal.user = request.user  # Set the current user as the goal owner
-            goal.save()
-            messages.success(request, "Goal created successfully.")
-            return redirect("goal_list")
-    else:
-        form = GoalForm()
-    return render(request, "api/goal_form.html", {"form": form})
-
-
-# Edit Goal
-@login_required
-def edit_goal(request, pk):
-    goal = get_object_or_404(
-        Goal, pk=pk, user=request.user
-    )  # Ensure the goal belongs to the current user
+def goals_detail(request, pk):
+    goal = get_object_or_404(Goal, pk=pk, user=request.user)
     if request.method == "POST":
         form = GoalForm(request.POST, instance=goal)
         if form.is_valid():
             form.save()
-            messages.success(request, "Goal updated successfully.")
-            return redirect("goal_list")
+            messages.success(request, "Goal request updated successfully.")
+            return redirect("goals")
     else:
         form = GoalForm(instance=goal)
-    return render(request, "api/goal_form.html", {"form": form})
+
+    return render(request, 'goal_detail.html', {'form': form})
 
 
-# Delete Goal
+
+@login_required
+def edit_goal(request, pk):
+    goal = get_object_or_404(Goal, pk=pk, user=request.user)
+    if request.method == 'POST':
+        form = GoalForm(request.POST, instance=goal)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Goal updated successfully.')
+            return redirect('goals')
+    else:
+        form = GoalForm(instance=goal)
+    return render(request, 'goal_detail.html', {'form': form, 'goal_id': pk})
+
 @login_required
 def delete_goal(request, pk):
     goal = get_object_or_404(Goal, pk=pk, user=request.user)
-    if request.method == "POST":
+    if request.method == 'POST':
         goal.delete()
-        messages.success(request, "Goal deleted successfully.")
-        return redirect("goal_list")
-    return render(request, "api/confirm_delete.html", {"object": goal, "type": "goal"})
+        messages.success(request, 'Goal deleted successfully.')
+        return redirect('goals')
+    return render(request, 'goal_confirm_delete.html', {'goal': goal})
 
 
 @login_required
@@ -304,7 +333,7 @@ def job_list(request):
         "filter": job_filter,
         "page_obj": page_obj,
     }
-    return render(request, "api/job_list.html", context)
+    return render(request, "job_list.html", context)
 
 
 @login_required
@@ -317,7 +346,7 @@ def add_job(request):
     else:
         form = JobForm()
 
-    return render(request, "api/job_form.html", {"form": form})
+    return render(request, "job_form.html", {"form": form})
 
 
 @login_required
@@ -332,7 +361,7 @@ def edit_job(request, pk):
     else:
         form = JobForm(instance=job)
 
-    return render(request, "api/job_form.html", {"form": form, "job": job})
+    return render(request, "job_form.html", {"form": form, "job": job})
 
 
 # For admin users
@@ -353,4 +382,57 @@ def user_list(request):
         "filter": user_filter,
         "page_obj": page_obj,
     }
-    return render(request, "api/user_list.html", context)
+    return render(request, "user_list.html", context)
+
+# goal views
+@login_required
+def goals(request):
+    goals = Goal.objects.filter(user=request.user)
+    if request.method == 'POST':
+        form = GoalForm(request.POST)
+        if form.is_valid():
+            goal = form.save(commit=False)
+            goal.user = request.user
+            goal.save()
+            messages.success(request, 'Goal added successfully.')
+            return redirect('goals')
+    else:
+        form = GoalForm()
+    return render(request, 'goals.html', {'goals': goals, 'form': form})
+
+@login_required
+def add_goal(request):
+    if request.method == "POST":
+        form = GoalForm(request.POST)
+        if form.is_valid():
+            goal = form.save(commit=False)
+            goal.user = request.user
+            goal.save()
+            messages.success(request, "Goal added successfully.")
+            return redirect("goals")
+    else:
+        form = GoalForm()
+    return render(request, "goal_add.html", {"form": form})
+
+
+@login_required
+def edit_goal(request, pk):
+    goal = get_object_or_404(Goal, pk=pk, user=request.user)
+    if request.method == 'POST':
+        form = GoalForm(request.POST, instance=goal)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Goal updated successfully.')
+            return redirect('goals')
+    else:
+        form = GoalForm(instance=goal)
+    return render(request, 'goals.html', {'form': form, 'goal_id': pk})
+
+@login_required
+def delete_goal(request, pk):
+    goal = get_object_or_404(Goal, pk=pk, user=request.user)
+    if request.method == 'POST':
+        goal.delete()
+        messages.success(request, 'Goal deleted successfully.')
+        return redirect('goals')
+    return render(request, 'delete_goal.html', {'goal': goal})
