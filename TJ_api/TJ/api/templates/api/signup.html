@@ -3,109 +3,109 @@
 
 {% block title %}TJ's - Sign Up{% endblock %}
 {% block extra_css %}
-<style>
-    .background-container {
-        background: linear-gradient(180deg, #0D276B 0%, #103287 32%, #0F3CB0 100%);
-        padding: 0.5rem; /* Add padding for spacing */
-        height: 100vh; /* Ensure it covers the full height */
-        display: flex; /* Allow flexbox for vertical centering */
-    }
-
-    .left-panel {
-        color: white;
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        align-items: center; /* Center vertically */
-        justify-content: center; /* Center horizontally */
-    }
-
-    .left-panel::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, var(--primary-light) 0%, transparent 60%);
-        opacity: 0.4;
-        animation: rotate 20s linear infinite;
-    }
-
-    @keyframes rotate {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .btn-primary {
-        background-color: var(--primary-light);
-        border-color: var(--primary-light);
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .logo {
-        font-family: 'Paytone One', sans-serif;
-        font-weight: 400;
-        text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--primary-color);
-        position: absolute;
-        top: 3%;
-        left: 15%;
-        transform: translateX(-50%);
-        z-index: 2;
-        width: 100%;
-        max-width: 298px;
-        height: auto;
-        padding: 10px;
-        font-size: clamp(32px, 8vw, 64px);
-    }
-
-    .form-control {
-        border-radius: 0.5rem;
-        border: 1px solid #e2e8f0;
-        padding: 0.75rem 1rem;
-    }
-
-    .form-control:focus {
-        border-color: var(--primary-light);
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-    }
-
-    @media (max-width: 991px) {
-        .logo {
-            position: static;
-            transform: none;
-            margin: 20px auto;
+    <style>
+        .background-container {
+            background: linear-gradient(180deg, #0D276B 0%, #103287 32%, #0F3CB0 100%);
+            padding: 0.5rem; /* Add padding for spacing */
+            height: 100vh; /* Ensure it covers the full height */
+            display: flex; /* Allow flexbox for vertical centering */
         }
-    }
 
-    @media (max-width: 575px) {
-        .logo {
-            font-size: 40px;
-            max-width: 200px;
+        .left-panel {
+            color: white;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center; /* Center vertically */
+            justify-content: center; /* Center horizontally */
         }
-    }
 
-    .white {
-        background-color: white
-    }
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--primary-light) 0%, transparent 60%);
+            opacity: 0.4;
+            animation: rotate 20s linear infinite;
+        }
 
-    .btn-light {
-      background-color: #f8f9fa !important; /* Ensure the light background */
-      color: #212529 !important; /* Ensure the text color is dark */
-    }      
-  
-</style>
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn-primary {
+            background-color: var(--primary-light);
+            border-color: var(--primary-light);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-family: 'Paytone One', sans-serif;
+            font-weight: 400;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            position: absolute;
+            top: 3%;
+            left: 15%;
+            transform: translateX(-50%);
+            z-index: 2;
+            width: 100%;
+            max-width: 298px;
+            height: auto;
+            padding: 10px;
+            font-size: clamp(32px, 8vw, 64px);
+        }
+
+        .form-control {
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        @media (max-width: 991px) {
+            .logo {
+                position: static;
+                transform: none;
+                margin: 20px auto;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .logo {
+                font-size: 40px;
+                max-width: 200px;
+            }
+        }
+
+        .white {
+            background-color: white
+        }
+
+        .btn-light {
+        background-color: #f8f9fa !important; /* Ensure the light background */
+        color: #212529 !important; /* Ensure the text color is dark */
+        }      
+    
+    </style>
 {% endblock %}
 {% block content %}
 <div class="background-container">

@@ -19,8 +19,8 @@ from .forms import (
 from .filters import AttendanceFilter, LeaveFilter, GoalFilter, JobFilter, UserFilter
 
 
-def landing_view(request):
-    return render(request, "api/landing.html")
+def landing_view(req):
+    return render(req, "api/landing.html")
 
 
 def login_view(request):
@@ -83,7 +83,6 @@ def profile(request):
             return redirect("profile")
     else:
         form = UserProfileForm(instance=request.user)
-
     return render(request, "api/profile.html", {"form": form})
 
 
@@ -156,7 +155,7 @@ def mark_attendance(request):
 # leave views
 @login_required
 def leave_list(request):
-    leaves = Leave.objects.filter(user=request.user)
+    leaves = Leave.objects.filter(user=request.user).order_by("-start_date")
     leave_filter = LeaveFilter(request.GET, queryset=leaves)
     filtered_leaves = leave_filter.qs
 

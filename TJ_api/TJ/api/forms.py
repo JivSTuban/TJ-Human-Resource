@@ -38,11 +38,6 @@ class UserProfileForm(forms.ModelForm):
         label="Zip Code",
         required=False,
     )
-    profile_picture = forms.ImageField(
-        widget=forms.FileInput(attrs={"class": "form-control"}),
-        label="Profile Picture",
-        required=False,
-    )
     new_password = forms.CharField(
         widget=forms.PasswordInput(
             attrs={"class": "form-control", "id": "new_password"}
@@ -66,7 +61,7 @@ class UserProfileForm(forms.ModelForm):
             "email",
             "phone_number",
             "date_of_hire",
-            "profile_picture",
+            "profile_path",
             "job",
             'new_password',
             'confirm_password',
