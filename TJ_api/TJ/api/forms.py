@@ -176,7 +176,7 @@ class DepartmentForm(forms.ModelForm):
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ["title", "description", "department"]
+        fields = ["title", "description"]
 
 
 class GoalForm(forms.ModelForm):

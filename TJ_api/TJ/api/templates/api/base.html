@@ -158,7 +158,12 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'attendance' %}active{% endif %}" href="{% url 'attendance' %}">
+                <a class="nav-link {% if request.resolver_match.url_name == 'attendance' %}active{% endif %}" 
+                {% if request.user.role == "MANAGER" %}
+                  href="{% url 'attendance' %}"
+                {% else %}
+                  href="{% url 'employee_attendance' %}"
+                {% endif %}>
                   <i class="fas fa-calendar-alt me-2"></i> Attendance
                 </a>
               </li>
@@ -177,6 +182,13 @@
                   <i class="fas fa-bullseye me-2"></i> Goals
                 </a>
               </li>
+              {% if request.user.role == "MANAGER" %}
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'jobs' %}active{% endif %}" href="{% url 'jobs' %}">
+                    <i class="fa-solid fa-briefcase me-2"></i> Jobs
+                  </a>
+                </li>
+              {% endif %}
               <li class="nav-item">
                 <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
                   <i class="fas fa-sign-out-alt me-2"></i> Logout

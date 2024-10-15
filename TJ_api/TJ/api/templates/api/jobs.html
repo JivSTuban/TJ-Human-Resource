@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Jobs{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+.content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+#jobs-list {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+.job-item {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.job-item:hover {
+    background-color: #f7f6f3;
+}
+.job-actions {
+    float: right;
+}
+.job-actions i {
+    cursor: pointer;
+}
+.asteriskField {
+    display: none !important;
+}
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="page-container">
+    <div class="content-wrapper container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Jobs</h1>
+            <div>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+                    Add Department
+                </button>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteDepartmentModal">
+                    Delete Department
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <form method="get" action="{% url 'jobs' %}">
+                <div class="input-group">
+                    <select class="form-select" name="department" onchange="this.form.submit()">
+                        <option value="">All Departments</option>
+                        {% for department in departments %}
+                            <option value="{{ department.id }}" {% if department.id|stringformat:"s" == selected_department %}selected{% endif %}>
+                                {{ department.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+
+        <div id="jobs-list">
+            {% for job in page_obj %}
+            <div class="job-item d-flex justify-content-between align-items-center" onclick="openJobDetailModal({{ job.id }})" style="cursor: pointer;">
+                <div>
+                    {{ job.title }} - {{ job.department.name }}
+                </div>
+                <div class="job-actions">
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteJobModal{{ job.id }}" onclick="event.stopPropagation();">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Job Detail Modal -->
+            <div class="modal fade" id="jobDetailModal{{ job.id }}" tabindex="-1" aria-labelledby="jobDetailModalLabel{{ job.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="jobDetailModalLabel{{ job.id }}">Job Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Title:</strong> {{ job.title }}</p>
+                            <p><strong>Department:</strong> {{ job.department.name }}</p>
+                            <p><strong>Description:</strong> {{ job.description }}</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Job Modal -->
+            <div class="modal fade" id="deleteJobModal{{ job.id }}" tabindex="-1" aria-labelledby="deleteJobModalLabel{{ job.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteJobModalLabel{{ job.id }}">Delete Job</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to delete the job "{{ job.title }}"?
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post" action="{% url 'delete_job' job.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <div class="job-item text-center" onclick="openAddJobModal()" style="cursor: pointer;">
+                <strong>+</strong>
+            </div>
+        </div>
+
+        
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation" class="mt-auto">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Add Job Modal -->
+<div class="modal fade" id="addJobModal" tabindex="-1" aria-labelledby="addJobModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addJobModalLabel">Add Job</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'add_job' %}">
+                    {% csrf_token %}
+                    {{ job_form|crispy }}
+                    <div class="mb-3">
+                        <label for="departmentSelect" class="form-label">Department <span class="text-danger">*</span></label>
+                        <select class="form-select" id="departmentSelect" name="department_id" required>
+                            <option value="">Select Department</option>
+                            {% for department in departments %}
+                                <option value="{{ department.id }}">{{ department.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Add Job</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Department Modal -->
+<div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addDepartmentModalLabel">Add Department</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'add_department' %}">
+                    {% csrf_token %}
+                    {{ department_form|crispy }}
+                    <button type="submit" class="btn btn-primary mt-3">Add Department</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Department Modal -->
+<div class="modal fade" id="deleteDepartmentModal" tabindex="-1" aria-labelledby="deleteDepartmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteDepartmentModalLabel">Delete Department</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group">
+                    {% for department in departments %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ department.name }}
+                            <form method="post" action="{% url 'delete_department' department.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function adjustJobsList() {
+        const windowHeight = window.innerHeight;
+        const jobsListElement = document.getElementById('jobs-list');
+        const jobsListTop = jobsListElement.getBoundingClientRect().top;
+        const paginationHeight = document.querySelector('nav[aria-label="Page navigation"]').offsetHeight;
+        const availableHeight = windowHeight - jobsListTop - paginationHeight - 40; // 40px for some padding
+        jobsListElement.style.maxHeight = `${availableHeight}px`;
+    }
+    function openAddJobModal() {
+        var addJobModal = new bootstrap.Modal(document.getElementById('addJobModal'));
+        addJobModal.show();
+    }
+    function openJobDetailModal(jobId) {
+        var jobDetailModal = new bootstrap.Modal(document.getElementById('jobDetailModal' + jobId));
+        jobDetailModal.show();
+    }
+    function openAddJobModal() {
+        var selectedDepartment = document.querySelector('select[name="department"]').value;
+        var departmentSelect = document.getElementById('departmentSelect');
+        departmentSelect.value = selectedDepartment;
+        var addJobModal = new bootstrap.Modal(document.getElementById('addJobModal'));
+        addJobModal.show();
+    }
+
+    window.addEventListener('load', adjustJobsList);
+    window.addEventListener('resize', adjustJobsList);
+</script>
+{% endblock content %}

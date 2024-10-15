@@ -1,12 +1,14 @@
-from datetime import timezone
+from datetime import timezone, datetime, timedelta, date
+from calendar import monthrange
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
-from .decorators import manager_required
+from .decorators import manager_required, employee_required
 from django.contrib.messages import get_messages
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.contrib.auth import update_session_auth_hash
+from django.views.decorators.http import require_POST
 from .models import User, Department, Job, Goal, Attendance, Leave
 from .forms import (
     LoginForm,
@@ -33,8 +35,13 @@ def login_view(request):
             password = form.cleaned_data.get("password")
             user = authenticate(email=email, password=password)
             if user is not None:
-                login(request, user)
-                return redirect("dashboard")
+                if user.status == "REJECTED":
+                    messages.error(request, "Your account was rejected.")
+                elif user.status == "PENDING":
+                    messages.error(request, "Your account is not approved yet.")
+                else:
+                    login(request, user)
+                    return redirect("dashboard")
             else:
                 messages.error(request, "Invalid email or password.")
     else:
@@ -65,20 +72,67 @@ def signup_view(request):
     return render(request, "signup.html", {"form": form})
 
 
+
+
 @login_required
 def dashboard(request):
-    user = request.user
-    recent_goals = Goal.objects.filter(user=user).order_by("-created_at")[:5]
-    recent_attendance = Attendance.objects.filter(user=user).order_by("-date")[:5]
-    pending_leaves = Leave.objects.filter(user=user, status="PENDING")
+    today = date.today()
+    total_employees = User.objects.count()
+    timed_in_today = Attendance.objects.filter(date=today, time_in__isnull=False).count()
+    timed_out_today = Attendance.objects.filter(date=today, time_out__isnull=False).count()
+    recent_attendance = Attendance.objects.order_by('-date', '-time_in')[:10]
+    pending_users = User.objects.filter(status='PENDING')
+
+    # Generate calendar data
+    year = today.year
+    month = today.month
+    first_day_of_month = date(year, month, 1)
+    last_day_of_month = date(year, month, monthrange(year, month)[1])
+    calendar_days = []
+    current_day = first_day_of_month
+
+    while current_day <= last_day_of_month:
+        attendance = Attendance.objects.filter(user=request.user, date=current_day).first()
+        calendar_days.append({
+            'date': current_day,
+            'attendance': attendance,
+        })
+        current_day += timedelta(days=1)
+
+    # Leave data for non-manager users
+    if request.user.role != "MANAGER":
+        total_leaves = Leave.objects.filter(user=request.user).count()
+        used_leaves = Leave.objects.filter(user=request.user, status='APPROVED').count()
+        remaining_leaves = total_leaves - used_leaves
+    else:
+        total_leaves = used_leaves = remaining_leaves = None
 
     context = {
-        "user": user,
-        "recent_goals": recent_goals,
-        "recent_attendance": recent_attendance,
-        "pending_leaves": pending_leaves,
+        'total_employees': total_employees,
+        'timed_in_today': timed_in_today,
+        'timed_out_today': timed_out_today,
+        'recent_attendance': recent_attendance,
+        'pending_users': pending_users,
+        'calendar_days': calendar_days,
+        'total_leaves': total_leaves,
+        'used_leaves': used_leaves,
+        'remaining_leaves': remaining_leaves,
     }
-    return render(request, "dashboard.html", context)
+    return render(request, 'dashboard.html', context)
+
+@login_required
+def approve_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    user.status = "APPROVED"
+    user.save()
+    return redirect("dashboard")
+
+@login_required
+def reject_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    user.status = "REJECTED"
+    user.save()
+    return redirect("dashboard")
 
 
 @login_required
@@ -100,37 +154,6 @@ def profile(request):
     return render(request, "profile.html", {"form": form})
 
 
-# Department views
-@login_required
-def department_list(request):
-    departments = Department.objects.all()
-    return render(request, "department_list.html", {"departments": departments})
-
-
-@login_required
-def add_department(request):
-    if request.method == "POST":
-        form = DepartmentForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("department_list")
-    else:
-        form = DepartmentForm()
-    return render(request, "department_form.html", {"form": form})
-
-
-@login_required
-def edit_department(request, pk):
-    department = get_object_or_404(Department, pk=pk)
-    if request.method == "POST":
-        form = DepartmentForm(request.POST, instance=department)
-        if form.is_valid():
-            form.save()
-            return redirect("department_list")
-    else:
-        form = DepartmentForm(instance=department)
-    return render(request, "department_form.html", {"form": form})
-
 @manager_required
 def attendance(request):
     attendance_list = Attendance.objects.all().order_by("-time_in")
@@ -143,45 +166,26 @@ def attendance(request):
     context = {
         "filter": attendance_filter,
         "page_obj": page_obj,
-    }
+    } 
     return render(request, "attendance.html", context)
-
-
-@login_required
-def mark_attendance(request):
-    today = timezone.now().date()
-    attendance, created = Attendance.objects.get_or_create(
-        user=request.user, date=today, defaults={"status": "PRESENT"}
-    )
-
-    if request.method == "POST":
-        form = AttendanceForm(request.POST, instance=attendance)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Attendance marked successfully.")
-            return redirect("attendance_list")
-    else:
-        form = AttendanceForm(instance=attendance)
-
-    storage = get_messages(request)
-    for _ in storage:
-        pass
-
-    return render(request, "attendance.html", {"form": form})
 
 # leave views
 @login_required
 def leave_list(request):
-    leaves = Leave.objects.filter(user=request.user).order_by("-status")
-    leave_filter = LeaveFilter(request.GET, queryset=leaves)
+    leaves_own = Leave.objects.filter(user=request.user).order_by("-status")
+    leaves_all = Leave.objects.all().order_by("-status")
+    leave_filter = ""
+    if(request.user.role == "MANAGER"):
+        leave_filter = LeaveFilter(request.GET, queryset=leaves_all)
+    else:
+        leave_filter = LeaveFilter(request.GET, queryset=leaves_own)
     filtered_leaves = leave_filter.qs
-
     paginator = Paginator(filtered_leaves, 10)  # Show 10 leaves per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     # Create a form instance for each leave request
-    edit_leave_forms = {leave.id: LeaveForm(instance=leave) for leave in leaves}
+    edit_leave_forms = {leave.id: LeaveForm(instance=leave) for leave in leaves_own}
 
     context = {
         'page_obj': page_obj,
@@ -259,6 +263,22 @@ def delete_leave(request, pk):
         pass
     return render(request, 'leave_confirm_delete.html', {'leave': leave})
 
+@manager_required
+@require_POST
+def approve_leave(request, leave_id):
+    leave = get_object_or_404(Leave, id=leave_id)
+    leave.status = 'APPROVED'
+    leave.save()
+    return redirect('leaves')
+
+@manager_required
+@require_POST
+def reject_leave(request, leave_id):
+    leave = get_object_or_404(Leave, id=leave_id)
+    leave.status = 'REJECTED'
+    leave.save()
+    return redirect('leaves')
+
 # Goal views
 
 @login_required
@@ -310,6 +330,57 @@ def edit_goal(request, pk):
         form = GoalForm(instance=goal)
     return render(request, 'goal_detail.html', {'form': form, 'goal_id': pk})
 
+@employee_required
+@login_required
+def employee_attendance(request):
+    today = date.today()
+    year = request.GET.get('year', today.year)
+    month = request.GET.get('month', today.month)
+    year, month = int(year), int(month)
+
+    # Generate calendar data
+    first_day_of_month = date(year, month, 1)
+    last_day_of_month = date(year, month, monthrange(year, month)[1])
+    calendar_days = []
+    current_day = first_day_of_month
+
+    while current_day <= last_day_of_month:
+        attendance = Attendance.objects.filter(user=request.user, date=current_day).first()
+        calendar_days.append({
+            'date': current_day,
+            'attendance': attendance,
+        })
+        current_day += timedelta(days=1)
+
+    today_attendance = Attendance.objects.filter(user=request.user, date=today).first()
+    timed_in = today_attendance is not None and today_attendance.time_in is not None
+
+    context = {
+        'timed_in': timed_in,
+        'calendar_days': calendar_days,
+        'year': year,
+        'month': month,
+        'today': today,
+    }
+    return render(request, 'employee_attendance.html', context)
+
+@login_required
+def mark_attendance(request):
+    today = date.today()
+    attendance, created = Attendance.objects.get_or_create(
+        user=request.user, date=today
+    )
+
+    if attendance.time_in and not attendance.time_out:
+        attendance.time_out = datetime.now()
+        attendance.status = 'PRESENT'
+    elif not attendance.time_in:
+        attendance.time_in = datetime.now()
+        attendance.status = 'PRESENT'
+    attendance.save()
+
+    return redirect('employee_attendance')
+
 @login_required
 def delete_goal(request, pk):
     goal = get_object_or_404(Goal, pk=pk, user=request.user)
@@ -319,50 +390,68 @@ def delete_goal(request, pk):
         return redirect('goals')
     return render(request, 'goal_confirm_delete.html', {'goal': goal})
 
+# Department views
+@manager_required
+@require_POST
+def add_department(request):
+    form = DepartmentForm(request.POST)
+    if form.is_valid():
+        form.save()
+    return redirect("jobs")
 
+@manager_required
+@require_POST
+def delete_department(request, department_id):
+    department = get_object_or_404(Department, id=department_id)
+    department.delete()
+    return redirect('jobs')
+
+
+
+# Job views
+@manager_required
 @login_required
-def job_list(request):
-    job_list = Job.objects.all().order_by("department", "title")
-    job_filter = JobFilter(request.GET, queryset=job_list)
+def jobs(request):
+    departments = Department.objects.all()
+    selected_department = request.GET.get("department")
+    if selected_department:
+        job_list = Job.objects.filter(department_id=selected_department).order_by("title")
+    else:
+        job_list = Job.objects.all().order_by("department", "title")
 
+    job_filter = JobFilter(request.GET, queryset=job_list)
     paginator = Paginator(job_filter.qs, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
     context = {
+        "departments": departments,
+        "selected_department": selected_department,
         "filter": job_filter,
         "page_obj": page_obj,
+        "job_form": JobForm(),
+        "department_form": DepartmentForm(),
     }
-    return render(request, "job_list.html", context)
+    return render(request, "jobs.html", context)
 
-
-@login_required
+@manager_required
+@require_POST
 def add_job(request):
-    if request.method == "POST":
-        form = JobForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("job_list")
-    else:
-        form = JobForm()
+    form = JobForm(request.POST)
+    if form.is_valid():
+        job = form.save(commit=False)
+        department_id = request.POST.get('department_id')
+        if department_id:
+            job.department = get_object_or_404(Department, id=department_id)
+        job.save()
+    return redirect("jobs")
 
-    return render(request, "job_form.html", {"form": form})
-
-
-@login_required
-def edit_job(request, pk):
-    job = get_object_or_404(Job, pk=pk)
-
-    if request.method == "POST":
-        form = JobForm(request.POST, instance=job)
-        if form.is_valid():
-            form.save()
-            return redirect("job_list")  # Redirect back to the job list after editing
-    else:
-        form = JobForm(instance=job)
-
-    return render(request, "job_form.html", {"form": form, "job": job})
-
+@manager_required
+@require_POST
+def delete_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+    job.delete()
+    return redirect('jobs')
 
 # For admin users
 @login_required

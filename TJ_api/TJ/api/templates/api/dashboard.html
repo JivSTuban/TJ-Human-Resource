@@ -1,219 +1,125 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Dashboard{% endblock title %}Dashboard
-{% block extra_css %}
-    <style>
-        .main-content {
-            padding: 20px;
-        }
-        .btn-primary {
-            background-color: #818cf8;
-            border-color: #818cf8;
-        }
-        .btn-primary:hover {
-            background-color: #6366f1;
-            border-color: #6366f1;
-        }
-        .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .applicant-img {
-            width: 80px;
-            height: 80px;
-            background-color: #e5e7eb;
-            border-radius: 50%;
-            margin: 0 auto;
-        }
-        .table th {
-            font-weight: normal;
-            color: #6b7280;
-        }
-        .status-active {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-        .status-expired {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-        .action-icon {
-            color: #6b7280;
-            margin-right: 10px;
-        }
-        .profile-image {
-            width: 50px;  
-            height: 50px;
-            object-fit: cover; 
-            border-radius: 50%;  
-        }
-        .asteriskField {
-            display: none; !important
-        }
 
-    </style>
-{% endblock extra_css %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .summary-cards {
+        display: flex;
+        gap: 20px;
+    }
+    .summary-card {
+        flex: 1;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        text-align: center;
+    }
+    .calendar-container {
+        margin-top: 20px;
+    }
+    .calendar {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .calendar-day {
+        width: 14.28%;
+        border: 1px solid #ddd;
+        padding: 10px;
+        box-sizing: border-box;
+        text-align: center;
+    }
+    .date {
+        font-weight: bold;
+    }
+    .time-in, .time-out, .no-attendance {
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-            <!-- Main content -->
-                <div class="vh-100">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-                        <button class="btn btn-primary">View company page</button>
-                        <div class="d-flex align-items-center">
-                            <input type="text" class="form-control me-2" placeholder="Search">
-                            <i class="fas fa-share-alt fs-4 me-3"></i>
-                            {% if user.profile_path %}
-                                <a href="{% url 'profile' %}" style="cursor: pointer;  width: 50px;  height: 50px;" ><img src="{{ user.profile_path.url }}" alt="Profile Picture" class="profile-image"></a>
-                            {% else %}
-                                <!-- Default image if no profile picture is uploaded -->
-                                <a href="{% url 'profile' %}" style="cursor: pointer;  width: 50px;  height: 50px;" ><img src="https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg" alt="Profile Picture" class="profile-image"></a>
-                            {% endif %}
-                        </div>
-                    </div>
-    
-                    <h3 class="mb-4">Recent Applicants</h3>
-                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-5">
-                        <div class="col">
-                            <div class="card h-100 text-center">
-                                <div class="card-body">
-                                    <div class="applicant-img mb-3"></div>
-                                    <h5 class="card-title">Josh Cervantes</h5>
-                                    <p class="card-text text-muted">Middle UI/UX Designer</p>
-                                    <button class="btn btn-outline-primary">View Detail</button>
+<div class="container mt-4">
+    <h1>Dashboard</h1>
+    <div class="dashboard-container">
+        {% if user.role == "MANAGER" %}
+        <!-- Pending User Registrations -->
+        <div class="table-container">
+            <h2>Pending User Registrations</h2>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in pending_users %}
+                        <tr>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.get_role_display }}</td>
+                            <td>
+                                <div class="d-flex">
+                                    <form method="post" action="{% url 'approve_user' user.id %}" class="me-2">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-success">Approve</button>
+                                    </form>
+                                    <form method="post" action="{% url 'reject_user' user.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">Reject</button>
+                                    </form>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="card h-100 text-center">
-                                <div class="card-body">
-                                    <div class="applicant-img mb-3"></div>
-                                    <h5 class="card-title">Justin Labajos</h5>
-                                    <p class="card-text text-muted">Middle Front-end developer</p>
-                                    <button class="btn btn-outline-primary">View Detail</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="card h-100 text-center">
-                                <div class="card-body">
-                                    <div class="applicant-img mb-3"></div>
-                                    <h5 class="card-title">Jiv Tuban</h5>
-                                    <p class="card-text text-muted">Senior Back-end developer</p>
-                                    <button class="btn btn-outline-primary">View Detail</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="card h-100 text-center">
-                                <div class="card-body">
-                                    <div class="applicant-img mb-3"></div>
-                                    <h5 class="card-title">Annie Mhalka</h5>
-                                    <p class="card-text text-muted">Junior UI/UX Designer</p>
-                                    <button class="btn btn-outline-primary">View Detail</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-    
-                    <h3 class="mb-4">Recent Jobs</h3>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Job title</th>
-                                    <th>Applicants</th>
-                                    <th>Status</th>
-                                    <th>Deadlines</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Middle UI/UX Designer</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="d-flex">
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 30px; height: 30px;">10</div>
-                                            </div>
-                                            <span class="ms-2">12 applied</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge status-active">Active</span></td>
-                                    <td>15 June 2025</td>
-                                    <td>
-                                        <i class="fas fa-edit action-icon"></i>
-                                        <i class="fas fa-eye action-icon"></i>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Middle Front-end developer</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="d-flex">
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 30px; height: 30px;">10</div>
-                                            </div>
-                                            <span class="ms-2">14 applied</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge status-active">Active</span></td>
-                                    <td>15 June 2025</td>
-                                    <td>
-                                        <i class="fas fa-edit action-icon"></i>
-                                        <i class="fas fa-eye action-icon"></i>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Senior Back-end developer</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="d-flex">
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 30px; height: 30px;">7</div>
-                                            </div>
-                                            <span class="ms-2">10 applied</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge status-expired">Expired</span></td>
-                                    <td>15 October 2024</td>
-                                    <td>
-                                        <i class="fas fa-edit action-icon"></i>
-                                        <i class="fas fa-eye action-icon"></i>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Junior UI/UX Designer</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="d-flex">
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle" style="width: 30px; height: 30px; margin-right: -10px;"></div>
-                                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 30px; height: 30px;">10</div>
-                                            </div>
-                                            <span class="ms-2">16 applied</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge status-active">Active</span></td>
-                                    <td>15 June 2025</td>
-                                    <td>
-                                        <i class="fas fa-edit action-icon"></i>
-                                        <i class="fas fa-eye action-icon"></i>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                            </td>
+                            
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <!-- Leave Summary for Non-Manager Users -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h2>{{ total_leaves }}</h2>
+                <p>Total Leaves</p>
+            </div>
+            <div class="summary-card">
+                <h2>{{ used_leaves }}</h2>
+                <p>Used Leaves</p>
+            </div>
+            <div class="summary-card">
+                <h2>{{ remaining_leaves }}</h2>
+                <p>Remaining Leaves</p>
+            </div>
+        </div>
+        <!-- Calendar View -->
+        <div class="calendar-container">
+            <h2>Attendance Calendar</h2>
+            <div class="calendar">
+                {% for day in calendar_days %}
+                <div class="calendar-day">
+                    <div class="date">{{ day.date|date:"j" }}</div>
+                    {% if day.attendance %}
+                    <div class="time-in">In: {{ day.attendance.time_in|date:"g:iA" }}</div>
+                    <div class="time-out">Out: {{ day.attendance.time_out|date:"g:iA" }}</div>
+                    {% else %}
+                    <div class="no-attendance">No Attendance</div>
+                    {% endif %}
                 </div>
-{% endblock  %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

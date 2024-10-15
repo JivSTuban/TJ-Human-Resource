@@ -168,7 +168,7 @@ class Attendance(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    time_in = models.DateTimeField()
+    time_in = models.DateTimeField(null=True, blank=True)
     time_out = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     date = models.DateField(auto_now_add=True)

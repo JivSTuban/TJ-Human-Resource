@@ -24,38 +24,67 @@
     .goal-item {
         background-color: #ffffff;
         border: 1px solid #e0e0e0;
-        border-radius: 5px;
-        padding: 15px;
+        border-radius: 8px;
+        padding: 20px;
         margin-bottom: 15px;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .goal-item:hover {
-        background-color: #f7f6f3;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+    .goal-item.completed {
+        background-color: #f0fff4;
+        border-color: #68d391;
     }
     .goal-checkbox {
-        margin-right: 10px;
+        margin-right: 15px;
+        width: 20px;
+        height: 20px;
+    }
+    .goal-description {
+        font-size: 1.1rem;
+        color: #2d3748;
+        margin-bottom: 5px;
+    }
+    .goal-item.completed .goal-description {
+        text-decoration: line-through;
+        color: #718096;
+    }
+    .goal-due-date {
+        font-size: 0.9rem;
+        color: #718096;
     }
     .add-goal {
-        color: #a3a3a2;
+        color: #4a5568;
         cursor: pointer;
         padding: 15px;
-        border: 1px dashed #e0e0e0;
-        border-radius: 5px;
+        border: 2px dashed #e2e8f0;
+        border-radius: 8px;
         display: inline-block;
+        transition: all 0.3s ease;
     }
     .add-goal:hover {
-        color: var(--primary-color);
-        background-color: #f7f6f3;
+        color: #2b6cb0;
+        background-color: #ebf8ff;
+        border-color: #63b3ed;
     }
     .goal-actions {
         float: right;
     }
     .goal-actions i {
         cursor: pointer;
+        margin-top: 10px;
         margin-left: 10px;
+        color: #718096;
+        transition: color 0.2s ease;
+        font-size: 1.3em; /* Increased icon size */
     }
-   
+    .goal-actions i:hover {
+        color: #2b6cb0;
+    }
     .asteriskField {
         display: none !important;
     }
@@ -66,20 +95,25 @@
 <div class="page-container">
     <div class="content-wrapper container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>My Goals</h1>
+            <h1 class="text-3xl font-bold">My Goals</h1>
             <div class="add-goal" data-bs-toggle="modal" data-bs-target="#addGoalModal">
-                <i class="fas fa-plus"></i> Add Goal
+                <i class="fas fa-plus mr-2"></i> Add Goal
             </div>
         </div>
         
         <div id="goals-list">
             {% for goal in page_obj %}
-            <div class="goal-item">
-                <input type="checkbox" class="goal-checkbox" {% if goal.completed %}checked{% endif %}>
-                {{ goal.description }} - Due: {{ goal.due_date|date:"F j, Y g:iA" }}
-                <div class="goal-actions">
-                    <i class="fas fa-edit" data-bs-toggle="modal" data-bs-target="#editGoalModal{{ goal.id }}"></i>
-                    <i class="fas fa-trash" data-bs-toggle="modal" data-bs-target="#deleteGoalModal{{ goal.id }}"></i>
+            <div class="goal-item {% if goal.completed %}completed{% endif %}">
+                <div class="d-flex align-items-center">
+                    <input type="checkbox" class="goal-checkbox" {% if goal.completed %}checked{% endif %}>
+                    <div>
+                        <div class="goal-description">{{ goal.description }}</div>
+                        <div class="goal-due-date">Due: {{ goal.due_date|date:"F j, Y g:iA" }}</div>
+                    </div>
+                    <div class="goal-actions ml-auto">
+                        <i class="fas fa-edit" data-bs-toggle="modal" data-bs-target="#editGoalModal{{ goal.id }}"></i>
+                        <i class="fas fa-trash" data-bs-toggle="modal" data-bs-target="#deleteGoalModal{{ goal.id }}"></i>
+                    </div>
                 </div>
             </div>
             <!-- Edit Goal Modal -->
@@ -129,7 +163,7 @@
             {% endfor %}
         </div>
         
-        <!-- Add Goal -->
+        <!-- Add Goal Modal -->
         <div class="modal fade" id="addGoalModal" tabindex="-1" aria-labelledby="addGoalModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">

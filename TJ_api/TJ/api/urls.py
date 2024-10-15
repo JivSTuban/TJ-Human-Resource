@@ -13,17 +13,18 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(next_page="login"), name="logout"),
     path("signup/", views.signup_view, name="signup"),
     # Dashboard
-    path("dashboard/", views.dashboard, name="dashboard"),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('approve_user/<int:user_id>/', views.approve_user, name='approve_user'),
+    path('reject_user/<int:user_id>/', views.reject_user, name='reject_user'),
+
     # User URLs
     path("profile/", views.profile, name="profile"),
-    # Department URLs
-    path("departments/", views.department_list, name="department_list"),
-    path("departments/add/", views.add_department, name="add_department"),
-    path("departments/<int:pk>/edit/", views.edit_department, name="edit_department"),
-    # Job URLs
-    path("jobs/", views.job_list, name="job_list"),
-    path("jobs/add/", views.add_job, name="add_job"),
-    path("jobs/<int:pk>/edit/", views.edit_job, name="edit_job"),
+    # jobs and department URLs
+    path('jobs/', views.jobs, name='jobs'),
+    path('add_job/', views.add_job, name='add_job'),
+    path('add_department/', views.add_department, name='add_department'),
+    path('delete_job/<int:job_id>/', views.delete_job, name='delete_job'),
+    path('delete_department/<int:department_id>/', views.delete_department, name='delete_department'),
     # Goal URLs
     path("goals/", views.goal_list, name="goals"),
     path("goals/add/", views.add_goal, name="add_goal"),
@@ -31,13 +32,17 @@ urlpatterns = [
     path("goals/<int:pk>/delete/", views.delete_goal, name="delete_goal"),
     # Attendance URLs
     path("attendance/", views.attendance, name="attendance"),
-    path("attendance/mark/", views.mark_attendance, name="mark_attendance"),
+    path("attendance/mark", views.mark_attendance, name="mark_attendance"),
+    path("attendance/employee", views.employee_attendance, name="employee_attendance"),
+    
     # Leave URLs
     path("leaves/", views.leave_list, name="leaves"),
     path('leaves/<int:pk>/edit/', views.edit_leave, name='edit_leave'),
     path("leaves/request/", views.request_leave, name="request_leave"),
     path("leaves/<int:pk>/", views.leave_detail, name="leave_detail"),
     path("leaves/<int:pk>/delete/", views.delete_leave, name="delete_leave"),
+    path('approve_leave/<int:leave_id>/', views.approve_leave, name='approve_leave'),
+    path('reject_leave/<int:leave_id>/', views.reject_leave, name='reject_leave'),
 ]
 
 if settings.DEBUG:

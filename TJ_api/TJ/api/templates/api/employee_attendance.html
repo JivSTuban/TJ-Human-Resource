@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Employee Attendance{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .calendar {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .calendar-day {
+            width: 14.28%;
+            border: 1px solid #ddd;
+            padding: 10px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .date {
+            font-weight: bold;
+        }
+        .time-in, .time-out, .no-attendance {
+            margin-top: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Attendance for {{ today|date:"F Y" }}</h1>
+    <div class="calendar">
+        {% for day in calendar_days %}
+        <div class="calendar-day">
+            <div class="date">{{ day.date|date:"j" }}</div>
+            {% if day.attendance %}
+            <div class="time-in">In: {{ day.attendance.time_in|date:"g:iA" }}</div>
+            <div class="time-out">Out: {{ day.attendance.time_out|date:"g:iA" }}</div>
+            {% else %}
+            <div class="no-attendance">No Attendance</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    <div class="mt-3">
+        <form method="post" action="{% url 'mark_attendance' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">
+                {% if timed_in %}
+                Time Out
+                {% else %}
+                Time In
+                {% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
