@@ -6,6 +6,21 @@
 
 {% block extra_css %}
     <style>
+    .page-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    .content-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    #goals-list {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
     .goal-item {
         background-color: #ffffff;
         border: 1px solid #e0e0e0;
@@ -40,132 +55,151 @@
         cursor: pointer;
         margin-left: 10px;
     }
+   
+    .asteriskField {
+        display: none !important;
+    }
     </style>
 {% endblock extra_css %}
 
 {% block content %}
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>My Goals</h1>
-    <div class="add-goal" data-bs-toggle="modal" data-bs-target="#addGoalModal">
-      <i class="fas fa-plus"></i> Add Goal
-    </div>
-  </div>
-  
-  <div id="goals-list" class="vh-100">
-    {% for goal in page_obj %}
-    <div class="goal-item">
-      <input type="checkbox" class="goal-checkbox" {% if goal.completed %}checked{% endif %}>
-      {{ goal.description }} - Due: {{ goal.due_date|date:"F j, Y g:iA" }}
-      <div class="goal-actions">
-        <i class="fas fa-edit" data-bs-toggle="modal" data-bs-target="#editGoalModal{{ goal.id }}"></i>
-        <i class="fas fa-trash" data-bs-toggle="modal" data-bs-target="#deleteGoalModal{{ goal.id }}"></i>
-      </div>
-    </div>
-  
-    <!-- Edit Goal Modal -->
-    <div class="modal fade" id="editGoalModal{{ goal.id }}" tabindex="-1" aria-labelledby="editGoalModalLabel{{ goal.id }}" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="editGoalModalLabel{{ goal.id }}">Edit Goal</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form method="post" action="{% url 'edit_goal' goal.id %}">
-              {% csrf_token %}
-              {{ edit_goal_forms|dict_get:goal.id|crispy }}
-              <button type="submit" class="btn btn-primary mt-3">Save changes</button>
-            </form>
-          </div>
+<div class="page-container">
+    <div class="content-wrapper container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>My Goals</h1>
+            <div class="add-goal" data-bs-toggle="modal" data-bs-target="#addGoalModal">
+                <i class="fas fa-plus"></i> Add Goal
+            </div>
         </div>
-      </div>
-    </div>
-  
-    <!-- Delete Goal Modal -->
-    <div class="modal fade" id="deleteGoalModal{{ goal.id }}" tabindex="-1" aria-labelledby="deleteGoalModalLabel{{ goal.id }}" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteGoalModalLabel{{ goal.id }}">Confirm Delete</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            Are you sure you want to delete this goal?
-          </div>
-          <div class="modal-footer">
-            <form method="post" action="{% url 'delete_goal' goal.id %}">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          </div>
+        
+        <div id="goals-list">
+            {% for goal in page_obj %}
+            <div class="goal-item">
+                <input type="checkbox" class="goal-checkbox" {% if goal.completed %}checked{% endif %}>
+                {{ goal.description }} - Due: {{ goal.due_date|date:"F j, Y g:iA" }}
+                <div class="goal-actions">
+                    <i class="fas fa-edit" data-bs-toggle="modal" data-bs-target="#editGoalModal{{ goal.id }}"></i>
+                    <i class="fas fa-trash" data-bs-toggle="modal" data-bs-target="#deleteGoalModal{{ goal.id }}"></i>
+                </div>
+            </div>
+            <!-- Edit Goal Modal -->
+            <div class="modal fade" id="editGoalModal{{ goal.id }}" tabindex="-1" aria-labelledby="editGoalModalLabel{{ goal.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editGoalModalLabel{{ goal.id }}">Edit Goal</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="post" action="{% url 'edit_goal' goal.id %}">
+                                {% csrf_token %}
+                                {{ edit_goal_forms|dict_get:goal.id|crispy }}
+                                <button type="submit" class="btn btn-primary mt-3">Save changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Delete Goal Modal -->
+            <div class="modal fade" id="deleteGoalModal{{ goal.id }}" tabindex="-1" aria-labelledby="deleteGoalModalLabel{{ goal.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteGoalModalLabel{{ goal.id }}">Confirm Delete</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Are you sure you want to delete this goal?
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post" action="{% url 'delete_goal' goal.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+                <div class="goal-item">
+                    <h4 class="text-center">You have no goals to accomplish.<br/><small>Set up goals to have a productive day ahead.</small></h4>
+                </div>
+            {% endfor %}
         </div>
-      </div>
-    </div>
-    {% empty %}
-      <div class="goal-item">
-        <h4 class="text-center">You have no goals to accomplish.<br/><small>Set up goals to have a productive day ahead.</small></h4>
-      </div>
-    {% endfor %}
-  </div>
-  
-  <!-- Add Goal -->
-  <div class="modal fade" id="addGoalModal" tabindex="-1" aria-labelledby="addGoalModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addGoalModalLabel">Add Goal</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        
+        <!-- Add Goal -->
+        <div class="modal fade" id="addGoalModal" tabindex="-1" aria-labelledby="addGoalModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addGoalModalLabel">Add Goal</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="{% url 'add_goal' %}">
+                            {% csrf_token %}
+                            {{ add_goal_form|crispy }}
+                            <button type="submit" class="btn btn-primary mt-3">Add Goal</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="modal-body">
-          <form method="post" action="{% url 'add_goal' %}">
-            {% csrf_token %}
-            {{ add_goal_form|crispy }}
-            <button type="submit" class="btn btn-primary mt-3">Add Goal</button>
-          </form>
-        </div>
-      </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="Page navigation" class="mt-auto">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+        
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+        
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
     </div>
-  </div>
-  
-  <!-- Pagination -->
-  <nav aria-label="Page navigation" class="mt-auto">
-      <ul class="pagination justify-content-center">
-          {% if page_obj.has_previous %}
-          <li class="page-item">
-              <a class="page-link" href="?page=1" aria-label="First">
-                  <span aria-hidden="true">&laquo;&laquo;</span>
-              </a>
-          </li>
-          <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
-              </a>
-          </li>
-          {% endif %}
-  
-          {% for num in page_obj.paginator.page_range %}
-              {% if page_obj.number == num %}
-                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                  <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-              {% endif %}
-          {% endfor %}
-  
-          {% if page_obj.has_next %}
-          <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-              </a>
-          </li>
-          <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
-                  <span aria-hidden="true">&raquo;&raquo;</span>
-              </a>
-          </li>
-          {% endif %}
-      </ul>
-  </nav>
 </div>
+
+<script>
+    function adjustGoalsList() {
+        const windowHeight = window.innerHeight;
+        const goalsListElement = document.getElementById('goals-list');
+        const goalsListTop = goalsListElement.getBoundingClientRect().top;
+        const paginationHeight = document.querySelector('nav[aria-label="Page navigation"]').offsetHeight;
+        const availableHeight = windowHeight - goalsListTop - paginationHeight - 40; // 40px for some padding
+        goalsListElement.style.maxHeight = `${availableHeight}px`;
+    }
+
+    window.addEventListener('load', adjustGoalsList);
+    window.addEventListener('resize', adjustGoalsList);
+</script>
 {% endblock content %}

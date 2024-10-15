@@ -387,7 +387,7 @@ def user_list(request):
 # goal views
 @login_required
 def goals(request):
-    goals = Goal.objects.filter(user=request.user)
+    goals = Goal.objects.filter(user=request.user).order_by('due_date')
     if request.method == 'POST':
         form = GoalForm(request.POST)
         if form.is_valid():
@@ -398,7 +398,16 @@ def goals(request):
             return redirect('goals')
     else:
         form = GoalForm()
-    return render(request, 'goals.html', {'goals': goals, 'form': form})
+    
+    # Separate goals into active and completed/expired
+    active_goals = goals.filter(status__in=['ACTIVE', 'IN_PROGRESS'])
+    completed_expired_goals = goals.exclude(completed=True).order_by('due_date')
+
+    return render(request, 'goals.html', {
+        'active_goals': active_goals,
+        'completed_expired_goals': completed_expired_goals,
+        'form': form
+    })
 
 @login_required
 def add_goal(request):

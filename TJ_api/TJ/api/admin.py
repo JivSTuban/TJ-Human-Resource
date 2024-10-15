@@ -75,7 +75,7 @@ class JobAdmin(admin.ModelAdmin):
 
 @admin.register(Goal)
 class GoalAdmin(admin.ModelAdmin):
-    list_display = ("user", "description", "due_date", "created_at")
+    list_display = ("user", "description", "completed", "due_date", "created_at")
     list_filter = ("due_date", "created_at")
 
 

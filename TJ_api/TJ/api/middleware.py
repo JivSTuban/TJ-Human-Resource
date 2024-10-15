@@ -26,6 +26,6 @@ class LoginRequiredMiddleware:
         # Check if the current route is in the exempt routes
         if current_route_name not in settings.LOGIN_EXEMPT_ROUTES:
             if not request.user.is_authenticated:
-                return render(request, "api/page404.html", status=403)
+                return render(request, "page404.html", status=403)
 
         return None
