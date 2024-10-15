@@ -101,15 +101,6 @@
                     <button type="submit" class="btn btn-primary btn-lg">Update Profile</button>
                 </div>
             </form>
-            {% if messages %}
-            <div class="messages mt-3">
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}" role="alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-            {% endif %}
         </div>
     </div>
 {% endblock content %}

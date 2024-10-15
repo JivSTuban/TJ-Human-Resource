@@ -58,6 +58,7 @@
                         <tr>
                             <th>Email</th>
                             <th>Role</th>
+                            <th>Name</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -66,6 +67,7 @@
                         <tr>
                             <td>{{ user.email }}</td>
                             <td>{{ user.get_role_display }}</td>
+                            <td>{{ user.first_name|capfirst }} {{ user.last_name|capfirst }}</td>
                             <td>
                                 <div class="d-flex">
                                     <form method="post" action="{% url 'approve_user' user.id %}" class="me-2">
