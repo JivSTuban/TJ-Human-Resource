@@ -1,17 +1,18 @@
-<table>
+<table style="border: none; border-collapse: collapse;">
 <tr>
-<td>
+<td style="border: none;">
 
 ![Project Logo](./TJ_logo.png)
 
 </td>
-<td>
+<td style="border: none;">
 
-# Human Resource System
+<h1 style="margin-top: 10px; text-decoration: none;">Human Resource System</h1>
 
 </td>
 </tr>
 </table>
+
 
 ## Table of Contents
 - [Project Overview](#project-overview)
