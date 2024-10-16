@@ -1,4 +1,17 @@
-![Project Logo](./TJ_logo.png) # Human Resource System
+<table>
+<tr>
+<td>
+
+![Project Logo](./TJ_logo.png)
+
+</td>
+<td>
+
+# Human Resource System
+
+</td>
+</tr>
+</table>
 
 ## Table of Contents
 - [Project Overview](#project-overview)
