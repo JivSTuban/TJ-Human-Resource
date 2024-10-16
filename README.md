@@ -1,6 +1,6 @@
 <h1 align="center">
   <img src="./TJ_logo.png" alt="Project Logo" width="200" />
-  <span style="font-size: 2em; font-weight: bold; text-decoration: none;">Human Resource System</span>
+  <span style="font-size: 2em; font-weight: bold; text-decoration: none; margin-bottom: 10px;">Human Resource System</span>
 </h1>
 
 ## Table of Contents
