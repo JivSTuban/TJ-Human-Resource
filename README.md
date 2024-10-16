@@ -14,7 +14,7 @@
 
 ## Project Overview
 
-TJ's Human Resource System is a comprehensive application designed to streamline HR processes and enhance employee management. Our system aims to provide an efficient and user-friendly interface for both HR professionals and employees.
+TJ's Human Resource System is a comprehensive application designed to streamline HR processes and enhance employee management. Our system aims to provide an efficient and user-friendly interface for both managers and employees.
 
 ## Team Members
 
@@ -31,26 +31,27 @@ TJ's Human Resource System is a comprehensive application designed to streamline
 
 ## Getting Started
 
-To get started with the TJ's Human Resource System, follow these steps:
+To get started with TJ's Human Resource System, follow these steps:
 
-1. Clone the repository
+1. **Clone the repository**  
+   📋 `git clone https://github.com/JivSTuban/TJ-Human-Resource.git`
 
+2. **Go to the project directory**  
+   📋 `cd TJ_api/TJ`
 
-git clone [https://github.com/your-repo-url.git](https://github.com/your-repo-url.git)
+3. **Install dependencies**  
+   📋 `pip3 install -r requirements.txt`
 
+4. **Set up the database**  
+   📋 
+   ```bash
+   python3 manage.py makemigrations
+   python3 manage.py migrate
+   ```
 
-2. Install dependencies
-
-
-npm install
-
-
-3. Set up the database
-4. Run the application
-
-
-npm start
-
+5. **Run the application**
+    📋 `python3 manage.py runserver`
+    
 ## Features
 
 - Employee Management
