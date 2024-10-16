@@ -34,24 +34,32 @@ TJ's Human Resource System is a comprehensive application designed to streamline
 To get started with TJ's Human Resource System, follow these steps:
 
 1. **Clone the repository**  
-   📋 `git clone https://github.com/JivSTuban/TJ-Human-Resource.git`
+   ```bash
+   git clone https://github.com/JivSTuban/TJ-Human-Resource.git
+   ```
 
 2. **Go to the project directory**  
-   📋 `cd TJ_api/TJ`
+   ```bash
+   cd TJ_api/TJ
+   ```
 
 3. **Install dependencies**  
-   📋 `pip3 install -r requirements.txt`
+   ```bash
+   pip3 install -r requirements.txt
+   ```
 
 4. **Set up the database**  
-   📋 
+
    ```bash
    python3 manage.py makemigrations
    python3 manage.py migrate
    ```
 
 5. **Run the application**
-    📋 `python3 manage.py runserver`
-    
+    ```bash
+    python3 manage.py runserver
+    ```
+
 ## Features
 
 - Employee Management
