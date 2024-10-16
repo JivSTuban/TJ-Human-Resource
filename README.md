@@ -1,6 +1,6 @@
 # TJ's Human Resource System
 
-![Project Logo](https://your-logo-url-here.com)
+![Project Logo](./TJ_logo.png)
 
 ## Table of Contents
 - [Project Overview](#project-overview)
