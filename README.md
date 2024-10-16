@@ -33,6 +33,8 @@ TJ's Human Resource System is a comprehensive application designed to streamline
 
 To get started with TJ's Human Resource System, follow these steps:
 
+# MAC
+
 1. **Clone the repository**  
    ```bash
    git clone https://github.com/JivSTuban/TJ-Human-Resource.git
@@ -60,21 +62,53 @@ To get started with TJ's Human Resource System, follow these steps:
     python3 manage.py runserver
     ```
 
+# WINDOWS
+
+1. **Clone the repository**  
+   ```bash
+   git clone https://github.com/JivSTuban/TJ-Human-Resource.git
+   ```
+
+2. **Go to the project directory**  
+   ```bash
+   cd TJ_api/TJ
+   ```
+
+3. **Install dependencies**  
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Set up the database**  
+
+   ```bash
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
+
+5. **Run the application**
+    ```bash
+    python manage.py runserver
+    ```
+
 ## Features
 
 - Employee Management
+- Goal Setting
 - Time and Attendance Tracking
-- Performance Evaluation
+- User Profile Management
+- Goal Setting and Tracking
 - Leave Management
-- Payroll Integration
-- Reporting and Analytics
+- Jobs and Departments Management
+- Employee Panel
+- Manager Panel
 
 ## Technologies Used
 
-- Frontend: [List your frontend technologies]
-- Backend: [List your backend technologies]
-- Database: [Your database system]
-- Other tools: [Any other significant tools or libraries]
+- Frontend: HTML, CSS, BOOTSTRAP, JAVASCRIPT, DJANGO-TEMPLATES
+- Backend: DJANGO
+- Database: SQLITE
+- Other tools: CRISPY, DJANGO-FILTER, PILLOW, RUFF
 
 
 ## License
