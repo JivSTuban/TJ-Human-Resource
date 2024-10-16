@@ -1,18 +1,7 @@
-<table style="border: none; border-collapse: collapse;">
-<tr>
-<td style="border: none;">
-
-![Project Logo](./TJ_logo.png)
-
-</td>
-<td style="border: none;">
-
-<h1 style="margin-top: 10px; text-decoration: none;">Human Resource System</h1>
-
-</td>
-</tr>
-</table>
-
+<p align="center">
+  <img src="./TJ_logo.png" alt="Project Logo" width="200" />
+  <span style="font-size: 2em; font-weight: bold; text-decoration: none;">Human Resource System</span>
+</p>
 
 ## Table of Contents
 - [Project Overview](#project-overview)
