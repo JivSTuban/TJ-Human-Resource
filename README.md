@@ -9,7 +9,6 @@
 - [Getting Started](#getting-started)
 - [Features](#features)
 - [Technologies Used](#technologies-used)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## Project Overview
@@ -67,9 +66,6 @@ npm start
 - Database: [Your database system]
 - Other tools: [Any other significant tools or libraries]
 
-## Contributing
-
-We welcome contributions to the TJ's Human Resource System. Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 
