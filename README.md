@@ -1,4 +1,3 @@
-```markdown
 # TJ's Human Resource System
 
 ![Project Logo](https://your-logo-url-here.com)
