@@ -1,7 +1,7 @@
-<p align="center">
+<h1 align="center">
   <img src="./TJ_logo.png" alt="Project Logo" width="200" />
   <span style="font-size: 2em; font-weight: bold; text-decoration: none;">Human Resource System</span>
-</p>
+</h1>
 
 ## Table of Contents
 - [Project Overview](#project-overview)
