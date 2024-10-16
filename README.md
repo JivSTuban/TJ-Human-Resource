@@ -33,7 +33,7 @@ TJ's Human Resource System is a comprehensive application designed to streamline
 
 To get started with TJ's Human Resource System, follow these steps:
 
-# MAC
+### MAC
 
 1. **Clone the repository**  
    ```bash
@@ -62,7 +62,7 @@ To get started with TJ's Human Resource System, follow these steps:
     python3 manage.py runserver
     ```
 
-# WINDOWS
+### WINDOWS
 
 1. **Clone the repository**  
    ```bash
