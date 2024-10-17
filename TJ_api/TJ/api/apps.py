@@ -6,4 +6,4 @@ class ApiConfig(AppConfig):
     name = "api"
     
     def ready(self):
-        import api.signals  # Ensure the signals are imported
+        pass  # Ensure the signals are imported

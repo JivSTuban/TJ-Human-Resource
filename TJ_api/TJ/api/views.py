@@ -1,4 +1,4 @@
-from datetime import timezone, datetime, timedelta, date
+from datetime import datetime, timedelta, date
 from calendar import monthrange
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
@@ -16,7 +16,6 @@ from .forms import (
     DepartmentForm,
     JobForm,
     GoalForm,
-    AttendanceForm,
     LeaveForm,
     SignupForm,
 )
@@ -512,25 +511,3 @@ def add_goal(request):
         form = GoalForm()
     return render(request, "goal_add.html", {"form": form})
 
-
-@login_required
-def edit_goal(request, pk):
-    goal = get_object_or_404(Goal, pk=pk, user=request.user)
-    if request.method == 'POST':
-        form = GoalForm(request.POST, instance=goal)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Goal updated successfully.')
-            return redirect('goals')
-    else:
-        form = GoalForm(instance=goal)
-    return render(request, 'goals.html', {'form': form, 'goal_id': pk})
-
-@login_required
-def delete_goal(request, pk):
-    goal = get_object_or_404(Goal, pk=pk, user=request.user)
-    if request.method == 'POST':
-        goal.delete()
-        messages.success(request, 'Goal deleted successfully.')
-        return redirect('goals')
-    return render(request, 'delete_goal.html', {'goal': goal})
