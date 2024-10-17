@@ -78,12 +78,10 @@ LOGIN_EXEMPT_ROUTES = [
 
 ROOT_URLCONF = "TJ.urls"
 
-TEMPLATES_DIR = '/Users/jeremiatuban/Desktop/coding/Django/TJ-Human-Resource/TJ_api/TJ/api/templates/api'
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [TEMPLATES_DIR],
+        "DIRS": [BASE_DIR / "api" / "templates" / "api"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
