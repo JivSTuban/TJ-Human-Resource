@@ -4,6 +4,7 @@
 </h1>
 
 ## Table of Contents
+
 - [Project Overview](#project-overview)
 - [Team Members](#team-members)
 - [Project Resources](#project-resources)
@@ -34,66 +35,101 @@ TJ's Human Resource System is a comprehensive application designed to streamline
 To get started with TJ's Human Resource System:
 
 #### INSTALL CMAKE INTO YOUR SYSTEM
+   ##### macOS
+   ```bash
+   brew install cmake
+   ```
+   ### or
+
+   ##### windows
+   Download the CMake Installer from the [CMake official download page](https://cmake.org/download/).
+   Run the Installer and follow the instructions.
+   Add CMake to System Path during the installation process.
+
+
 
 and then:
 
 ### MAC
 
-1. **Clone the repository**  
+1. **Clone the repository**
+
    ```bash
    git clone https://github.com/JivSTuban/TJ-Human-Resource.git
    ```
 
-2. **Go to the project directory**  
+2. **Go to the TJ_api folder directory, create and run virtual environment**
+
    ```bash
-   cd TJ_api/TJ
+   cd TJ_api
+   python3 -m venv venv
+   source venv/bin/activate
    ```
 
-3. **Install dependencies**  
+3. **Install dependencies**
+
    ```bash
+   cd TJ
    pip3 install -r requirements.txt
    ```
 
-4. **Set up the database**  
+4. **Set up the database**
 
    ```bash
    python3 manage.py makemigrations
    python3 manage.py migrate
    ```
 
+   OPTIONAL: **Create Super User**
+
+   ```bash
+   python3 manage.py createsuperuser
+   ```
+
 5. **Run the application**
-    ```bash
-    python3 manage.py runserver
-    ```
+   ```bash
+   python3 manage.py runserver
+   ```
 
 ### WINDOWS
 
-1. **Clone the repository**  
+1. **Clone the repository**
+
    ```bash
    git clone https://github.com/JivSTuban/TJ-Human-Resource.git
    ```
 
-2. **Go to the project directory**  
+2. **Go to the TJ_api folder directory, create and run virtual environment**
+
    ```bash
-   cd TJ_api/TJ
+   cd TJ_api
+   python -m venv venv
+   .\venv\Scripts\activate
    ```
 
-3. **Install dependencies**  
+3. **Install dependencies**
+
    ```bash
+   cd TJ
    pip install -r requirements.txt
    ```
 
-4. **Set up the database**  
+4. **Set up the database**
 
    ```bash
    python manage.py makemigrations
    python manage.py migrate
    ```
 
+   OPTIONAL: **Create Super User**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
 5. **Run the application**
-    ```bash
-    python manage.py runserver
-    ```
+   ```bash
+   python manage.py runserver
+   ```
 
 ## Features
 
@@ -113,7 +149,6 @@ and then:
 - Backend: DJANGO
 - Database: SQLITE
 - Other tools: CRISPY, DJANGO-FILTER, PILLOW, RUFF
-
 
 ## License
 
