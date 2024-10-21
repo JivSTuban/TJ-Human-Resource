@@ -6,6 +6,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from .utils import is_ajax, classify_face
 from .decorators import manager_required, employee_required
+from django.urls import reverse
 from django.http import JsonResponse
 from django.contrib.messages import get_messages
 from django.contrib import messages
@@ -45,6 +46,8 @@ def login_view(request):
                     messages.error(request, "Your account is not approved yet.")
                 else:
                     login(request, user)
+                    if user.role == "ADMIN":
+                        return redirect(reverse('admin:index'))
                     return redirect("dashboard")
             else:
                 messages.error(request, "Invalid email or password.")
