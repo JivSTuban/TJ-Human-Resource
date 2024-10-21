@@ -131,9 +131,13 @@ def dashboard(request):
     recent_attendance = Attendance.objects.order_by('-date', '-time_in')[:10]
     pending_users = User.objects.filter(status='PENDING')
 
-    # Generate calendar data
-    year = today.year
-    month = today.month
+    # Get the selected month from the request, default to the current month
+    selected_month = request.GET.get('month', today.strftime('%Y-%m'))
+    selected_month_date = datetime.strptime(selected_month, '%Y-%m')
+
+    # Generate calendar data for the selected month
+    year = selected_month_date.year
+    month = selected_month_date.month
     first_day_of_month = date(year, month, 1)
     last_day_of_month = date(year, month, monthrange(year, month)[1])
     calendar_days = []
@@ -165,6 +169,7 @@ def dashboard(request):
         'total_leaves': total_leaves,
         'used_leaves': used_leaves,
         'remaining_leaves': remaining_leaves,
+        'selected_month': selected_month_date,
     }
     return render(request, 'dashboard.html', context)
 

@@ -121,6 +121,11 @@ class User(AbstractUser):
 
     
     def save(self, *args, **kwargs):
+         # Check if the user is a superuser
+        if self.is_superuser:
+            self.status = "APPROVED"
+            self.role = "ADMIN"
+
         # Check if the profile picture has changed
         if self.pk:
             old_profile = User.objects.get(pk=self.pk)

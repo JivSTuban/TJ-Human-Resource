@@ -22,7 +22,7 @@
         text-align: center;
     }
     .calendar-container {
-        margin-top: 20px;
+        margin-top: 5px;
     }
     .calendar {
         display: flex;
@@ -104,9 +104,17 @@
                 <p>Remaining Leaves</p>
             </div>
         </div>
+        <!-- Month Selection Form -->
+        <div class="month-selection">
+            <form method="get" action="{% url 'dashboard' %}">
+                <label for="month">Select Month:</label>
+                <input type="month" id="month" name="month" value="{{ selected_month|date:"Y-m" }}">
+                <button type="submit" class="btn btn-primary">Go</button>
+            </form>
+        </div>
         <!-- Calendar View -->
         <div class="calendar-container">
-            <h2>Attendance Calendar</h2>
+            <h3>Attendance Calendar</h3>
             <div class="calendar">
                 {% for day in calendar_days %}
                 <div class="calendar-day">

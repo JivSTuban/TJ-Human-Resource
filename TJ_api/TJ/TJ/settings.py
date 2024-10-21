@@ -76,6 +76,7 @@ LOGIN_EXEMPT_ROUTES = [
     "signup",
     "mark_attendance_face",
     "classify",
+    "admin"
 ]
 
 ROOT_URLCONF = "TJ.urls"
