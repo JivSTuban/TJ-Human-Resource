@@ -9,17 +9,21 @@ __pycache__/
 */migrations/*
 
 # Ignore database files
-*.sqlite3
+TJ_api/TJ/db.sqlite3
 
 # Ignore environment variables file
 .env
 
 # Ignore static files
-staticfiles/
+TJ_api/TJ/static/
 
 # Ignore media files
-media/
+TJ_api/TJ/media/
+
 
 # Ignore IDE specific files
 .vscode/
 .idea/
+
+# Ignore ds_store files
+.DS_Store/
