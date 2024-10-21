@@ -3,3 +3,9 @@ django-crispy-forms
 Pillow
 django-filter
 ruff
+cmake
+dlib
+numpy
+face_recognition
+face_recognition_models @ git+https://github.com/ageitgey/face_recognition_models
+setuptools

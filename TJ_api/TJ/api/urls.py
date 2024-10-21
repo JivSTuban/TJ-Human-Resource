@@ -12,6 +12,7 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("logout/", LogoutView.as_view(next_page="login"), name="logout"),
     path("signup/", views.signup_view, name="signup"),
+    path("classify/", views.find_user_view, name="classify"),
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
     path('approve_user/<int:user_id>/', views.approve_user, name='approve_user'),
@@ -34,7 +35,7 @@ urlpatterns = [
     path("attendance/", views.attendance, name="attendance"),
     path("attendance/mark", views.mark_attendance, name="mark_attendance"),
     path("attendance/employee", views.employee_attendance, name="employee_attendance"),
-    
+    path("attendance/mark_face", views.mark_attendance_face , name="mark_attendance_face"),
     # Leave URLs
     path("leaves/", views.leave_list, name="leaves"),
     path('leaves/<int:pk>/edit/', views.edit_leave, name='edit_leave'),

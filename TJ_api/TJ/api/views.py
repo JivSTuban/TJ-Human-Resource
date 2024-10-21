@@ -1,15 +1,20 @@
+import base64
 from datetime import datetime, timedelta, date
 from calendar import monthrange
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
+from .utils import is_ajax, classify_face
 from .decorators import manager_required, employee_required
+from django.http import JsonResponse
 from django.contrib.messages import get_messages
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.http import require_POST
-from .models import User, Department, Job, Goal, Attendance, Leave
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.base import ContentFile
+from .models import User, Department, Job, Goal, Attendance, Leave, Log
 from .forms import (
     LoginForm,
     UserProfileForm,
@@ -21,11 +26,11 @@ from .forms import (
 )
 from .filters import AttendanceFilter, LeaveFilter, GoalFilter, JobFilter, UserFilter
 
-
+# hero view
 def landing_view(req):
     return render(req, "landing.html")
 
-
+# authentication views
 def login_view(request):
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -46,9 +51,6 @@ def login_view(request):
     else:
         form = LoginForm()
 
-    storage = get_messages(request)
-    for _ in storage:
-        pass
     return render(request, "login.html", {"form": form})
 
 
@@ -64,15 +66,62 @@ def signup_view(request):
     else:
         form = SignupForm()
 
-    storage = get_messages(request)
-    for _ in storage:
-        pass
-
     return render(request, "signup.html", {"form": form})
 
 
+# face recognition attendance views
+def mark_attendance_face(request):
+    return render(request, 'mark_attendance_face.html')
 
+@csrf_exempt
+def find_user_view(request):
+    if is_ajax(request):
+        photo = request.POST.get('photo')
+        if not photo:
+            return JsonResponse({'success': False, 'error': 'No photo provided'})
 
+        try:
+            _, str_img = photo.split(';base64')
+            decoded_file = base64.b64decode(str_img)
+        except (ValueError, TypeError) as e:
+            return JsonResponse({'success': False, 'error': 'Invalid photo format'})
+
+        # Save the decoded image to the Log model
+        log_entry = Log()
+        log_entry.photo.save('upload.png', ContentFile(decoded_file))
+        log_entry.save()
+
+        # Classify the face using the saved photo
+        res = classify_face(log_entry.photo.path)
+        if res:
+            user_exists = User.objects.filter(email=res).exists()
+            if user_exists:
+                user = User.objects.get(email=res)
+                if user.profile_path and user.profile_path.name:
+                    log_entry.profile = user
+                    
+
+                    # Authenticate the user using the custom backend
+                    if user is not None:
+                        if user.status == "REJECTED":
+                            messages.error(request, "Your account was rejected.")
+                        elif user.status == "PENDING":
+                            messages.error(request, "Your account is not approved yet.")
+                        else:
+                            login(request, user)
+                            log_entry.is_correct = True
+                            log_entry.save()
+                            # after logging in the user and saving the log entry, mark the attendance
+                            mark_attendance(request)
+                            return JsonResponse({'success': True, 'redirect_url': '/dashboard/'})
+                    else:
+                        return JsonResponse({'success': False, 'error': 'Authentication failed'})
+                else:
+                    return JsonResponse({'success': False, 'error': 'User profile has no associated profile picture'})
+        return JsonResponse({'success': False, 'error': 'User not found'})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+# dashboard view
 @login_required
 def dashboard(request):
     today = date.today()

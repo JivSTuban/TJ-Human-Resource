@@ -6,6 +6,38 @@
 
 {% block extra_css %}
     <style>
+        .or-separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .or-separator::before,
+        .or-separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .or-separator span {
+            padding: 0 1rem;
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color, #6c757d);
+            border-color: var(--secondary-color, #6c757d);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark, #5a6268);
+            border-color: var(--secondary-dark, #5a6268);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
         .background-container {
             background: linear-gradient(180deg, #0D276B 0%, #103287 32%, #0F3CB0 100%);
             padding: 0.5rem; /* Add padding for spacing */
@@ -103,8 +135,8 @@
         }
 
         .btn-light {
-        background-color: #f8f9fa !important; /* Ensure the light background */
-        color: #212529 !important; /* Ensure the text color is dark */
+            background-color: #f8f9fa !important; /* Ensure the light background */
+            color: #212529 !important; /* Ensure the text color is dark */
         }  
       
         .asteriskField {
@@ -141,7 +173,15 @@
                             <button type="submit" class="btn btn-primary btn-lg px-5 py-3 rounded-3 shadow">Sign in</button>
                         </div>
                     </form>
-    
+
+                    <div class="or-separator">
+                        <span>or</span>
+                    </div>
+
+                    <div class="d-grid">
+                        <a href="{% url 'mark_attendance_face' %}" class="btn btn-secondary btn-lg px-5 py-3 rounded-3 shadow">Mark attendance</a>
+                    </div>
+
                     {% if messages %}
                     <div class="bg-danger-subtle messages mt-3">
                         {% for message in messages %}

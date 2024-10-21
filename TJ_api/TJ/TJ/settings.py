@@ -74,6 +74,8 @@ LOGIN_EXEMPT_ROUTES = [
     "landing",
     "login",
     "signup",
+    "mark_attendance_face",
+    "classify",
 ]
 
 ROOT_URLCONF = "TJ.urls"
@@ -146,7 +148,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static" / "img",
+    BASE_DIR / "static",
 ]
 
 # Default primary key field type

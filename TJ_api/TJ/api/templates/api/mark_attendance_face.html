@@ -1,0 +1,317 @@
+{% extends "hero_base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}TJ's - Mark Attendance{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .background-container {
+            background: linear-gradient(180deg, #0D276B 0%, #103287 32%, #0F3CB0 100%);
+            padding: 0.5rem;
+            height: 100vh;
+            display: flex;
+        }
+
+        .left-panel {
+            color: white;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--primary-light) 0%, transparent 60%);
+            opacity: 0.4;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn-primary {
+            background-color: var(--primary-light);
+            border-color: var(--primary-light);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color, #6c757d);
+            border-color: var(--secondary-color, #6c757d);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark, #5a6268);
+            border-color: var(--secondary-dark, #5a6268);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-control {
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .logo {
+            font-family: 'Paytone One', sans-serif;
+            font-weight: 400;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            position: absolute;
+            top: 3%;
+            left: 15%;
+            transform: translateX(-50%);
+            z-index: 2;
+            width: 100%;
+            max-width: 298px;
+            height: auto;
+            padding: 10px;
+            font-size: clamp(32px, 8vw, 64px);
+        }
+
+        @media (max-width: 991px) {
+            .logo {
+                position: static;
+                transform: none;
+                margin: 20px auto;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .logo {
+                font-size: 40px;
+                max-width: 200px;
+            }
+        }
+
+        .white {
+            background-color: white;
+        }
+
+        .btn-light {
+            background-color: #f8f9fa !important;
+            color: #212529 !important;
+        }
+
+        .asteriskField {
+            display: none !important;
+        }
+
+        .not-visible {
+            display: none;
+        }
+
+        #video-element {
+            max-width: 100%;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #img-element img {
+            max-width: 100%;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="background-container">
+    <div class="container-fluid d-flex flex-column justify-content-between" style="height: 100%;">
+        <div class="row flex-grow-1">
+            <div class="col-lg-5 left-panel d-flex flex-column align-items-center justify-content-center rounded-start-4">
+                <h3 class="logo mb-4">TJ's</h3>
+                <div class="px-4 py-5 text-center" style="position: relative; z-index: 1;">
+                    <h1 class="display-5 mb-4 fw-bold">Already registered?</h1>
+                    <p class="lead mb-5 fw-semibold">If you're already registered,<br/>you can sign in here</p>
+                    <a href="{% url 'login' %}" class="btn btn-light btn-lg px-5 py-3 rounded-3 shadow">
+                        Sign in
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-7 d-flex align-items-center justify-content-center white rounded-end-4">
+                <div class="px-4 py-5 w-100" style="max-width: 500px;">
+                    <h1 class="display-5 mb-4 fw-bold text-center black">Mark Attendance</h1>
+                    <h5 class="text-muted mb-5 text-center">Capture your photo to mark attendance</h5>
+
+                    <div class="text-center mb-4">
+                        <video autoplay="true" id="video-element" class="mb-3"></video>
+                        <div id="img-element"></div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary btn-lg px-5 py-3 rounded-3 shadow" id="capture-btn">Take Photo</button>
+                        <button class="btn btn-secondary btn-lg px-5 py-3 rounded-3 shadow" id="reload-btn">Reload Camera</button>
+                    </div>
+
+                    {% if messages %}
+                    <div class="bg-danger-subtle messages mt-3">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} shadow-sm rounded-3 py-3 px-4" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const getCookie = (name) => {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    const video = document.getElementById('video-element');
+    const image = document.getElementById('img-element');
+    const captureBtn = document.getElementById('capture-btn');
+    const reloadBtn = document.getElementById('reload-btn');
+
+    reloadBtn.addEventListener('click', () => {
+        window.location.reload();
+    });
+
+    const handleCameraAccess = () => {
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({video: true})
+            .then((stream) => {
+                video.srcObject = stream;
+                const {height, width} = stream.getTracks()[0].getSettings();
+    
+                captureBtn.addEventListener('click', e => {
+                    e.preventDefault();
+                    captureBtn.classList.add('not-visible');
+                    const track = stream.getVideoTracks()[0];
+
+                    if ('ImageCapture' in window) {
+                        const imageCapture = new ImageCapture(track);
+                        imageCapture.takePhoto().then(blob => {
+                            processImage(blob, width, height);
+                        }).catch(error => {
+                            console.log('takePhoto() error: ', error);
+                        });
+                    } else {
+                        // Fallback for browsers that do not support ImageCapture
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const context = canvas.getContext('2d');
+                        context.drawImage(video, 0, 0, width, height);
+                        canvas.toBlob(blob => {
+                            processImage(blob, width, height);
+                        });
+                    }
+                });
+            })
+            .catch(error => {
+                console.log("Something went wrong!", error);
+            });
+        }
+    };
+
+    const processImage = (blob, width, height) => {
+        console.log("Took photo:", blob);
+        const img = new Image(width, height);
+        img.src = URL.createObjectURL(blob);
+        image.append(img);
+    
+        video.classList.add('not-visible');
+    
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+            const base64data = reader.result;
+            console.log(base64data);
+    
+            const fd = new FormData();
+            fd.append('csrfmiddlewaretoken', csrftoken);
+            fd.append('photo', base64data);
+    
+            $.ajax({
+                type: 'POST',
+                url: '{% url "classify" %}',
+                enctype: 'multipart/form-data',
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: (resp) => {
+                    console.log(resp);
+                    if (resp.success) {
+                        window.location.href = resp.redirect_url;
+                    } else {
+                        alert(resp.error);
+                    }
+                },
+                error: (err) => {
+                    console.log(err);
+                }
+            });
+        };
+    };
+    // Check and request camera permissions
+    if (navigator.permissions) {
+        navigator.permissions.query({name: 'camera'}).then((permissionStatus) => {
+            if (permissionStatus.state === 'granted') {
+                handleCameraAccess();
+            } else if (permissionStatus.state === 'prompt') {
+                navigator.mediaDevices.getUserMedia({video: true})
+                .then((stream) => {
+                    handleCameraAccess();
+                })
+                .catch((error) => {
+                    console.log("Camera access denied!", error);
+                });
+            } else {
+                console.log("Camera access denied!");
+            }
+        });
+    } else {
+        // Fallback for browsers that do not support navigator.permissions
+        handleCameraAccess();
+    }
+    </script>
+{% endblock %}

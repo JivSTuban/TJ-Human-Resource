@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="./TJ_logo.png" alt="Project Logo" width="200" /><br />
+  <img src="./TJ_api/TJ/static/img/TJ_logo.png" alt="Project Logo" width="200" /><br />
   <span style="font-size: 2em; font-weight: bold;">Human Resource System</span>
 </h1>
 
@@ -31,7 +31,11 @@ TJ's Human Resource System is a comprehensive application designed to streamline
 
 ## Getting Started
 
-To get started with TJ's Human Resource System, follow these steps:
+To get started with TJ's Human Resource System:
+
+#### INSTALL CMAKE INTO YOUR SYSTEM
+
+and then:
 
 ### MAC
 

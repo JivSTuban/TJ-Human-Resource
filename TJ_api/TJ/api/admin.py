@@ -2,7 +2,7 @@
 # admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Address, Department, Job, Goal, Attendance, Leave
+from .models import User, Address, Department, Job, Goal, Attendance, Leave, Log
 
 
 @admin.register(User)
@@ -89,3 +89,9 @@ class AttendanceAdmin(admin.ModelAdmin):
 class LeaveAdmin(admin.ModelAdmin):
     list_display = ("user", "leave_type", "start_date", "end_date", "status")
     list_filter = ("leave_type", "status", "start_date")
+
+@admin.register(Log)
+class LogAdmin(admin.ModelAdmin):
+    list_display = ('id', 'profile', 'photo', 'is_correct', 'created')
+    list_filter = ('is_correct', 'created')
+    search_fields = ('profile__email', 'profile__first_name', 'profile__last_name')
