@@ -99,7 +99,7 @@ and then:
 
 - Employee Management
 - Goal Setting
-- Time and Attendance Tracking
+- Time and Attendance Tracking (Manual and Face Recognition)
 - User Profile Management
 - Goal Setting and Tracking
 - Leave Management
