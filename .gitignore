@@ -1,5 +1,5 @@
 # Ignore virtual environment folder
-venv/
+TJ_api/venv/
 
 # Ignore Python compiled files
 __pycache__/
