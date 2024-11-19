@@ -46,9 +46,10 @@ def login_view(request):
                     messages.error(request, "Your account is not approved yet.")
                 else:
                     login(request, user)
-                    if user.role == "ADMIN":
+                    if user.role == "MANAGER" or user.role == "EMPLOYEE":
+                        return redirect("dashboard")
+                    elif user.role == "ADMIN":
                         return redirect(reverse('admin:index'))
-                    return redirect("dashboard")
             else:
                 messages.error(request, "Invalid email or password.")
     else:
@@ -176,14 +177,14 @@ def dashboard(request):
     }
     return render(request, 'dashboard.html', context)
 
-@login_required
+@manager_required
 def approve_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     user.status = "APPROVED"
     user.save()
     return redirect("dashboard")
 
-@login_required
+@manager_required
 def reject_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     user.status = "REJECTED"
@@ -209,6 +210,7 @@ def profile(request):
         pass
     return render(request, "profile.html", {"form": form})
 
+# attendance and leave views
 
 @manager_required
 def attendance(request):
@@ -225,7 +227,58 @@ def attendance(request):
     } 
     return render(request, "attendance.html", context)
 
-# leave views
+@employee_required
+@login_required
+def employee_attendance(request):
+    today = date.today()
+    year = request.GET.get('year', today.year)
+    month = request.GET.get('month', today.month)
+    year, month = int(year), int(month)
+
+    # Generate calendar data
+    first_day_of_month = date(year, month, 1)
+    last_day_of_month = date(year, month, monthrange(year, month)[1])
+    calendar_days = []
+    current_day = first_day_of_month
+
+    while current_day <= last_day_of_month:
+        attendance = Attendance.objects.filter(user=request.user, date=current_day).first()
+        calendar_days.append({
+            'date': current_day,
+            'attendance': attendance,
+        })
+        current_day += timedelta(days=1)
+
+    today_attendance = Attendance.objects.filter(user=request.user, date=today).first()
+    timed_in = today_attendance is not None and today_attendance.time_in is not None
+
+    context = {
+        'timed_in': timed_in,
+        'calendar_days': calendar_days,
+        'year': year,
+        'month': month,
+        'today': today,
+    }
+    return render(request, 'employee_attendance.html', context)
+
+@login_required
+def mark_attendance(request):
+    today = date.today()
+    attendance, created = Attendance.objects.get_or_create(
+        user=request.user, date=today
+    )
+
+    if attendance.time_in and not attendance.time_out:
+        attendance.time_out = datetime.now()
+        attendance.status = 'PRESENT'
+    elif not attendance.time_in:
+        attendance.time_in = datetime.now()
+        attendance.status = 'PRESENT'
+    attendance.save()
+
+    return redirect('employee_attendance')
+
+
 @login_required
 def leave_list(request):
     leaves_own = Leave.objects.filter(user=request.user).order_by("-status")
@@ -386,56 +439,6 @@ def edit_goal(request, pk):
         form = GoalForm(instance=goal)
     return render(request, 'goal_detail.html', {'form': form, 'goal_id': pk})
 
-@employee_required
-@login_required
-def employee_attendance(request):
-    today = date.today()
-    year = request.GET.get('year', today.year)
-    month = request.GET.get('month', today.month)
-    year, month = int(year), int(month)
-
-    # Generate calendar data
-    first_day_of_month = date(year, month, 1)
-    last_day_of_month = date(year, month, monthrange(year, month)[1])
-    calendar_days = []
-    current_day = first_day_of_month
-
-    while current_day <= last_day_of_month:
-        attendance = Attendance.objects.filter(user=request.user, date=current_day).first()
-        calendar_days.append({
-            'date': current_day,
-            'attendance': attendance,
-        })
-        current_day += timedelta(days=1)
-
-    today_attendance = Attendance.objects.filter(user=request.user, date=today).first()
-    timed_in = today_attendance is not None and today_attendance.time_in is not None
-
-    context = {
-        'timed_in': timed_in,
-        'calendar_days': calendar_days,
-        'year': year,
-        'month': month,
-        'today': today,
-    }
-    return render(request, 'employee_attendance.html', context)
-
-@login_required
-def mark_attendance(request):
-    today = date.today()
-    attendance, created = Attendance.objects.get_or_create(
-        user=request.user, date=today
-    )
-
-    if attendance.time_in and not attendance.time_out:
-        attendance.time_out = datetime.now()
-        attendance.status = 'PRESENT'
-    elif not attendance.time_in:
-        attendance.time_in = datetime.now()
-        attendance.status = 'PRESENT'
-    attendance.save()
-
-    return redirect('employee_attendance')
 
 @login_required
 def delete_goal(request, pk):

@@ -20,6 +20,7 @@ urlpatterns = [
 
     # User URLs
     path("profile/", views.profile, name="profile"),
+    
     # jobs and department URLs
     path('jobs/', views.jobs, name='jobs'),
     path('add_job/', views.add_job, name='add_job'),

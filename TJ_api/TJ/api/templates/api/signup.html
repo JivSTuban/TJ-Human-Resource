@@ -102,14 +102,13 @@
         }
 
         .btn-light {
-        background-color: #f8f9fa !important; /* Ensure the light background */
-        color: #212529 !important; /* Ensure the text color is dark */
+            background-color: #f8f9fa !important; /* Ensure the light background */
+            color: #212529 !important; /* Ensure the text color is dark */
         }      
 
         .asteriskField {
             display: none; !important
         }
-  
     </style>
 {% endblock %}
 {% block content %}
@@ -135,7 +134,13 @@
                     <form method="post" class="mb-3">
                         {% csrf_token %}
                         {{ form|crispy }}
-                        <button type="submit" class="btn btn-primary btn-lg w-100">Sign up</button>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                            <label class="form-check-label" for="termsCheck">
+                                I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">terms and conditions</a>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100" id="signUpButton" disabled>Sign up</button>
                     </form>
                     {% if messages %}
                         {% for message in messages %}
@@ -150,4 +155,62 @@
         </div>
     </div>
 </div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h4>1. Introduction</h4>
+                <p>Welcome to TJ's. By using our services, you agree to the following terms and conditions. Please read them carefully.</p>
+                
+                <h4>2. Privacy</h4>
+                <p>Your privacy is important to us. Please review our Privacy Policy to understand our practices.</p>
+                
+                <h4>3. Use of Services</h4>
+                <p>You must follow any policies made available to you within the services. Do not misuse our services. For example, do not interfere with our services or try to access them using a method other than the interface and the instructions that we provide.</p>
+                
+                <h4>4. Content</h4>
+                <p>Our services display some content that is not TJ's. This content is the sole responsibility of the entity that makes it available. We may review content to determine whether it is illegal or violates our policies, and we may remove or refuse to display content that we reasonably believe violates our policies or the law.</p>
+                
+                <h4>5. Modifications</h4>
+                <p>We may modify these terms or any additional terms that apply to a service to reflect changes to the law or changes to our services. You should look at the terms regularly. We will post notice of modifications to these terms on this page. Changes will not apply retroactively and will become effective no sooner than fourteen days after they are posted.</p>
+                
+                <h4>6. Termination</h4>
+                <p>We may suspend or terminate your access to our services if you do not comply with our terms or policies or if we are investigating suspected misconduct.</p>
+                
+                <h4>7. Warranties and Disclaimers</h4>
+                <p>We provide our services using a commercially reasonable level of skill and care and we hope that you will enjoy using them. But there are certain things that we don’t promise about our services.</p>
+                
+                <h4>8. Liability</h4>
+                <p>When permitted by law, TJ's will not be responsible for lost profits, revenues, or data, financial losses, or indirect, special, consequential, exemplary, or punitive damages.</p>
+                
+                <h4>9. Governing Law</h4>
+                <p>These terms are governed by and construed in accordance with the laws of the jurisdiction in which TJ's operates.</p>
+                
+                <h4>10. Contact Information</h4>
+                <p>If you have any questions about these terms, please contact me at jivtuban14@gmail.com.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const termsCheck = document.getElementById('termsCheck');
+        const signUpButton = document.getElementById('signUpButton');
+
+        termsCheck.addEventListener('change', function () {
+            signUpButton.disabled = !this.checked;
+        });
+    });
+</script>
 {% endblock %}

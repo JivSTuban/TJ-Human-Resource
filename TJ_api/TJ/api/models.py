@@ -7,20 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from PIL import Image
 
-
-
-class Address(models.Model):
-    street = models.CharField(max_length=255)
-    city = models.CharField(max_length=100)
-    country = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=20)
-
-    class Meta:
-        verbose_name_plural = "addresses"
-
-    def __str__(self):
-        return f"{self.street}, {self.city}, {self.country}"
-
+# User related models
 
 class Department(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -37,6 +24,17 @@ class Job(models.Model):
     def __str__(self):
         return f"{self.title} - {self.department}"
 
+class Address(models.Model):
+    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
+    zip_code = models.CharField(max_length=20)
+
+    class Meta:
+        verbose_name_plural = "addresses"
+
+    def __str__(self):
+        return f"{self.street}, {self.city}, {self.country}"
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -162,6 +160,7 @@ class Log(models.Model):
 
     def __str__(self):
         return str(self.id)
+    
 
 class Goal(models.Model):
     description = models.TextField()
@@ -174,6 +173,7 @@ class Goal(models.Model):
     def __str__(self):
         return f"Goal for {self.user}: due {self.due_date}"
 
+# Attendance and Leave models
 
 class Attendance(models.Model):
     STATUS_CHOICES = [
