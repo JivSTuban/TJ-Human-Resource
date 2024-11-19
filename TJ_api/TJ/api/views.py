@@ -27,11 +27,11 @@ from .forms import (
 )
 from .filters import AttendanceFilter, LeaveFilter, GoalFilter, JobFilter, UserFilter
 
-# hero view
+# Landing Page Views
 def landing_view(req):
     return render(req, "landing.html")
 
-# authentication views
+# Authentication Views
 def login_view(request):
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -72,8 +72,7 @@ def signup_view(request):
 
     return render(request, "signup.html", {"form": form})
 
-
-# face recognition attendance views
+# Face Recognition Views
 def mark_attendance_face(request):
     return render(request, 'mark_attendance_face.html')
 
@@ -125,7 +124,7 @@ def find_user_view(request):
         return JsonResponse({'success': False, 'error': 'User not found'})
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
-# dashboard view
+# Dashboard Views
 @login_required
 def dashboard(request):
     today = date.today()
@@ -177,6 +176,7 @@ def dashboard(request):
     }
     return render(request, 'dashboard.html', context)
 
+# User Management Views
 @manager_required
 def approve_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -210,9 +210,8 @@ def profile(request):
         pass
     return render(request, "profile.html", {"form": form})
 
-# attendance and leave views
-
-@manager_required
+# Attendance Management Views
+@login_required
 def attendance(request):
     attendance_list = Attendance.objects.all().order_by("-time_in")
     attendance_filter = AttendanceFilter(request.GET, queryset=attendance_list)
@@ -278,7 +277,7 @@ def mark_attendance(request):
 
     return redirect('employee_attendance')
 
-
+# Leave Management Views
 @login_required
 def leave_list(request):
     leaves_own = Leave.objects.filter(user=request.user).order_by("-status")
@@ -388,8 +387,7 @@ def reject_leave(request, leave_id):
     leave.save()
     return redirect('leaves')
 
-# Goal views
-
+# Goal Management Views
 @login_required
 def goal_list(request):
     goals = Goal.objects.filter(user=request.user).order_by("-due_date")
@@ -449,7 +447,45 @@ def delete_goal(request, pk):
         return redirect('goals')
     return render(request, 'goal_confirm_delete.html', {'goal': goal})
 
-# Department views
+@login_required
+def goals(request):
+    goals = Goal.objects.filter(user=request.user).order_by('due_date')
+    if request.method == 'POST':
+        form = GoalForm(request.POST)
+        if form.is_valid():
+            goal = form.save(commit=False)
+            goal.user = request.user
+            goal.save()
+            messages.success(request, 'Goal added successfully.')
+            return redirect('goals')
+    else:
+        form = GoalForm()
+    
+    # Separate goals into active and completed/expired
+    active_goals = goals.filter(status__in=['ACTIVE', 'IN_PROGRESS'])
+    completed_expired_goals = goals.exclude(completed=True).order_by('due_date')
+
+    return render(request, 'goals.html', {
+        'active_goals': active_goals,
+        'completed_expired_goals': completed_expired_goals,
+        'form': form
+    })
+
+@login_required
+def add_goal(request):
+    if request.method == "POST":
+        form = GoalForm(request.POST)
+        if form.is_valid():
+            goal = form.save(commit=False)
+            goal.user = request.user
+            goal.save()
+            messages.success(request, "Goal added successfully.")
+            return redirect("goals")
+    else:
+        form = GoalForm()
+    return render(request, "goal_add.html", {"form": form})
+
+# Department Management Views
 @manager_required
 @require_POST
 def add_department(request):
@@ -465,10 +501,7 @@ def delete_department(request, department_id):
     department.delete()
     return redirect('jobs')
 
-
-
-# Job views
-@manager_required
+# Job Management Views
 @login_required
 def jobs(request):
     departments = Department.objects.all()
@@ -512,7 +545,7 @@ def delete_job(request, job_id):
     job.delete()
     return redirect('jobs')
 
-# For admin users
+# Admin Management Views
 @login_required
 def user_list(request):
     if not request.user.is_staff:
@@ -531,43 +564,3 @@ def user_list(request):
         "page_obj": page_obj,
     }
     return render(request, "user_list.html", context)
-
-# goal views
-@login_required
-def goals(request):
-    goals = Goal.objects.filter(user=request.user).order_by('due_date')
-    if request.method == 'POST':
-        form = GoalForm(request.POST)
-        if form.is_valid():
-            goal = form.save(commit=False)
-            goal.user = request.user
-            goal.save()
-            messages.success(request, 'Goal added successfully.')
-            return redirect('goals')
-    else:
-        form = GoalForm()
-    
-    # Separate goals into active and completed/expired
-    active_goals = goals.filter(status__in=['ACTIVE', 'IN_PROGRESS'])
-    completed_expired_goals = goals.exclude(completed=True).order_by('due_date')
-
-    return render(request, 'goals.html', {
-        'active_goals': active_goals,
-        'completed_expired_goals': completed_expired_goals,
-        'form': form
-    })
-
-@login_required
-def add_goal(request):
-    if request.method == "POST":
-        form = GoalForm(request.POST)
-        if form.is_valid():
-            goal = form.save(commit=False)
-            goal.user = request.user
-            goal.save()
-            messages.success(request, "Goal added successfully.")
-            return redirect("goals")
-    else:
-        form = GoalForm()
-    return render(request, "goal_add.html", {"form": form})
-

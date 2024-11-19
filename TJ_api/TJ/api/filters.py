@@ -5,6 +5,7 @@ from django.forms.widgets import DateInput
 from .models import User, Department, Job, Goal, Attendance, Leave
 
 
+# Attendance Management Filters
 class AttendanceFilter(django_filters.FilterSet):
     first_name = django_filters.CharFilter(field_name='user__first_name', lookup_expr='icontains', label='First Name')
     last_name = django_filters.CharFilter(field_name='user__last_name', lookup_expr='icontains', label='Last Name')
@@ -15,6 +16,7 @@ class AttendanceFilter(django_filters.FilterSet):
         fields = ['first_name', 'last_name', 'date']
 
 
+# Leave Management Filters
 class LeaveFilter(django_filters.FilterSet):
     start_date = django_filters.DateFilter(
         field_name="start_date",
@@ -32,6 +34,7 @@ class LeaveFilter(django_filters.FilterSet):
         fields = ["start_date", "end_date", "leave_type", "status"]
 
 
+# Goal Management Filters
 class GoalFilter(django_filters.FilterSet):
     due_date_range = django_filters.DateFromToRangeFilter(
         field_name="due_date",
@@ -43,6 +46,7 @@ class GoalFilter(django_filters.FilterSet):
         fields = ["due_date_range"]
 
 
+# Job Management Filters
 class JobFilter(django_filters.FilterSet):
     department = django_filters.ModelChoiceFilter(
         queryset=Department.objects.all(), empty_label="All Departments"
@@ -54,6 +58,7 @@ class JobFilter(django_filters.FilterSet):
         fields = ["department", "title"]
 
 
+# User Management Filters
 class UserFilter(django_filters.FilterSet):
     department = django_filters.ModelChoiceFilter(
         queryset=Department.objects.all(),

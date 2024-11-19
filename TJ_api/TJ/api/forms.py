@@ -8,11 +8,53 @@ from crispy_forms.layout import Submit
 User = get_user_model()
 
 
+# Authentication Forms
 class LoginForm(forms.Form):
     email = forms.EmailField(label="Email")
     password = forms.CharField(widget=forms.PasswordInput, label="Password")
 
 
+class SignupForm(forms.ModelForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control"}), label="Password"
+    )
+    password_confirm = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control"}),
+        label="Confirm Password",
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            "first_name",
+            "last_name",
+            "email",
+            "password",
+        ]
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "form-control"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control"}),
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+        }
+        labels = {
+            "first_name": "First Name",
+            "last_name": "Last Name",
+            "email": "Email",
+            "password": "Password",
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        password_confirm = cleaned_data.get("password_confirm")
+
+        if password and password_confirm and password != password_confirm:
+            self.add_error("password_confirm", "Passwords do not match")
+
+        return cleaned_data
+
+
+# User Profile Forms
 class UserProfileForm(forms.ModelForm):
     street = forms.CharField(
         max_length=255,
@@ -127,58 +169,21 @@ class UserProfileForm(forms.ModelForm):
         return user
 
 
-class SignupForm(forms.ModelForm):
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-control"}), label="Password"
-    )
-    password_confirm = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-control"}),
-        label="Confirm Password",
-    )
-
-    class Meta:
-        model = User
-        fields = [
-            "first_name",
-            "last_name",
-            "email",
-            "password",
-        ]
-        widgets = {
-            "first_name": forms.TextInput(attrs={"class": "form-control"}),
-            "last_name": forms.TextInput(attrs={"class": "form-control"}),
-            "email": forms.EmailInput(attrs={"class": "form-control"}),
-        }
-        labels = {
-            "first_name": "First Name",
-            "last_name": "Last Name",
-            "email": "Email",
-            "password": "Password",
-        }
-
-    def clean(self):
-        cleaned_data = super().clean()
-        password = cleaned_data.get("password")
-        password_confirm = cleaned_data.get("password_confirm")
-
-        if password and password_confirm and password != password_confirm:
-            self.add_error("password_confirm", "Passwords do not match")
-
-        return cleaned_data
-
-
+# Department Management Forms
 class DepartmentForm(forms.ModelForm):
     class Meta:
         model = Department
         fields = ["name"]
 
 
+# Job Management Forms
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
         fields = ["title", "description"]
 
 
+# Goal Management Forms
 class GoalForm(forms.ModelForm):
     class Meta:
         model = Goal
@@ -188,6 +193,7 @@ class GoalForm(forms.ModelForm):
         }
 
 
+# Attendance Management Forms
 class AttendanceForm(forms.ModelForm):
     class Meta:
         model = Attendance
@@ -198,6 +204,7 @@ class AttendanceForm(forms.ModelForm):
         }
 
 
+# Leave Management Forms
 class LeaveForm(forms.ModelForm):
     leave_type = forms.ChoiceField(
         choices=Leave.LEAVE_TYPES,

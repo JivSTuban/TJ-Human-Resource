@@ -7,8 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from PIL import Image
 
-# User related models
-
+# Department Related Models
 class Department(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -16,6 +15,7 @@ class Department(models.Model):
         return self.name
 
 
+# Job Related Models
 class Job(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
@@ -24,6 +24,8 @@ class Job(models.Model):
     def __str__(self):
         return f"{self.title} - {self.department}"
 
+
+# Address Related Models
 class Address(models.Model):
     street = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
@@ -36,6 +38,8 @@ class Address(models.Model):
     def __str__(self):
         return f"{self.street}, {self.city}, {self.country}"
 
+
+# User Related Models
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -152,6 +156,7 @@ class User(AbstractUser):
                 print(f"File not found: {self.profile_path.path}")
 
 
+# Log Related Models
 class Log(models.Model):
     profile = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     photo = models.ImageField(upload_to='logs')
@@ -162,6 +167,7 @@ class Log(models.Model):
         return str(self.id)
     
 
+# Goal Related Models
 class Goal(models.Model):
     description = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -173,8 +179,8 @@ class Goal(models.Model):
     def __str__(self):
         return f"Goal for {self.user}: due {self.due_date}"
 
-# Attendance and Leave models
 
+# Attendance Related Models
 class Attendance(models.Model):
     STATUS_CHOICES = [
         ("PRESENT", "Present"),
@@ -196,6 +202,7 @@ class Attendance(models.Model):
         return f"{self.user} - {self.date} - {self.status}"
 
 
+# Leave Related Models
 class Leave(models.Model):
     LEAVE_TYPES = [
         ("ANNUAL", "Annual Leave"),
