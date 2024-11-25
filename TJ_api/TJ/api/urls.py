@@ -38,6 +38,7 @@ urlpatterns = [
     path("goals/add/", views.add_goal, name="add_goal"),
     path("goals/<int:pk>/edit/", views.edit_goal, name="edit_goal"),
     path("goals/<int:pk>/delete/", views.delete_goal, name="delete_goal"),
+    path("goals/<int:pk>/toggle/", views.toggle_goal, name="toggle_goal"),
 
     # Attendance Management URLs
     path("attendance/", views.attendance, name="attendance"),

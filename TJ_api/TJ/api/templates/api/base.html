@@ -21,6 +21,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Paytone+One&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
     <style>
       :root {
         --primary-color: #6675FE;
@@ -119,6 +121,57 @@
           margin: 0 15px 20px;
         }
       }
+      /* Add notification styles */
+      .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        max-width: 350px;
+      }
+      .notification {
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        animation: slideIn 0.5s ease-out;
+      }
+      .notification.success {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        border-left: 4px solid #198754;
+      }
+      .notification.error {
+        background-color: #f8d7da;
+        color: #842029;
+        border-left: 4px solid #dc3545;
+      }
+      .notification.warning {
+        background-color: #fff3cd;
+        color: #664d03;
+        border-left: 4px solid #ffc107;
+      }
+      .notification.info {
+        background-color: #cfe2ff;
+        color: #084298;
+        border-left: 4px solid #0d6efd;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .notification .close-btn {
+        float: right;
+        cursor: pointer;
+        font-weight: bold;
+        margin-left: 10px;
+      }
     </style>
     {% block extra_css %}
     {% endblock extra_css %}
@@ -140,6 +193,18 @@
         </button>
       </div>
     </nav>
+
+    <!-- Notification Container -->
+    <div class="notification-container">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="notification {{ message.tags }}" role="alert">
+            <span class="close-btn" onclick="this.parentElement.remove()">&times;</span>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
 
     <div class="container-fluid">
       <div class="row">
@@ -230,8 +295,20 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
+        // Auto-dismiss notifications after 3 seconds
+        const notifications = document.querySelectorAll('.notification');
+        notifications.forEach(notification => {
+          setTimeout(() => {
+            if (notification && notification.parentElement) {
+              notification.remove();
+            }
+          }, 3000);
+        });
+
+        // Sidebar toggle functionality
         var sidebarToggle = document.querySelector(".navbar-toggler");
         var sidebar = document.querySelector(".sidebar");
 

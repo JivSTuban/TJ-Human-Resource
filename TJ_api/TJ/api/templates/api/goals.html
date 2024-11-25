@@ -1,9 +1,3 @@
-{% comment %}
-Connected Models:
-- Goal: Main model for employee goals and objectives
-- User: For goal ownership and user details
-{% endcomment %}
-
 {% extends "base.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
@@ -112,7 +106,10 @@ Connected Models:
             {% for goal in page_obj %}
             <div class="goal-item {% if goal.completed %}completed{% endif %}">
                 <div class="d-flex align-items-center">
-                    <input type="checkbox" class="goal-checkbox" {% if goal.completed %}checked{% endif %}>
+                    <form method="post" action="{% url 'toggle_goal' goal.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="checkbox" class="goal-checkbox" {% if goal.completed %}checked{% endif %} onchange="this.form.submit()">
+                    </form>
                     <div>
                         <div class="goal-description">{{ goal.description }}</div>
                         <div class="goal-due-date">Due: {{ goal.due_date|date:"F j, Y g:iA" }}</div>
@@ -165,7 +162,8 @@ Connected Models:
             </div>
             {% empty %}
                 <div class="goal-item">
-                    <h4 class="text-center">You have no goals to accomplish.<br/><small>Set up goals to have a productive day ahead.</small></h4>
+                    <h4 class="text-center">You have no goals to accomplish</h4>
+                    <h5 class="text-center mt-3">Set up goals to have a productive day ahead</h5>
                 </div>
             {% endfor %}
         </div>
@@ -232,15 +230,56 @@ Connected Models:
 
 <script>
     function adjustGoalsList() {
-        const windowHeight = window.innerHeight;
-        const goalsListElement = document.getElementById('goals-list');
-        const goalsListTop = goalsListElement.getBoundingClientRect().top;
-        const paginationHeight = document.querySelector('nav[aria-label="Page navigation"]').offsetHeight;
-        const availableHeight = windowHeight - goalsListTop - paginationHeight - 40; // 40px for some padding
-        goalsListElement.style.maxHeight = `${availableHeight}px`;
+        const container = document.querySelector('.content-wrapper');
+        const list = document.getElementById('goals-list');
+        if (container && list) {
+            const containerHeight = container.offsetHeight;
+            const otherElements = Array.from(container.children).filter(el => el !== list);
+            const otherElementsHeight = otherElements.reduce((acc, el) => acc + el.offsetHeight, 0);
+            list.style.maxHeight = `${containerHeight - otherElementsHeight - 40}px`;
+        }
     }
-
-    window.addEventListener('load', adjustGoalsList);
+    adjustGoalsList();
     window.addEventListener('resize', adjustGoalsList);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Flatpickr with improved configuration
+        const flatpickrConfig = {
+            enableTime: true,
+            time_24hr: true,
+            minDate: 'today',
+            dateFormat: "Y-m-d H:i",
+            allowInput: true,
+            clickOpens: true,
+            minuteIncrement: 15,
+            defaultHour: new Date().getHours(),
+            defaultMinute: Math.ceil(new Date().getMinutes() / 15) * 15,
+            onOpen: function(selectedDates, dateStr, instance) {
+                // If no date is selected, default to current date
+                if (!selectedDates.length) {
+                    instance.setDate(new Date());
+                }
+            },
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length) {
+                    instance.input.dispatchEvent(new Event('change'));
+                }
+            }
+        };
+
+        flatpickr(".flatpickr-datetime", flatpickrConfig);
+
+        // Handle form submission
+        const goalForms = document.querySelectorAll('form[action*="goal"]');
+        goalForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const dateInput = form.querySelector('.flatpickr-datetime');
+                if (dateInput && !dateInput.value) {
+                    e.preventDefault();
+                    alert('Please select a due date and time.');
+                }
+            });
+        });
+    });
 </script>
 {% endblock content %}

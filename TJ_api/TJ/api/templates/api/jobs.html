@@ -1,9 +1,3 @@
-{% comment %}
-Connected Models:
-- Department: For department filtering and management
-- Job: Main model for job listings and details
-{% endcomment %}
-
 {% extends "base.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
@@ -137,7 +131,11 @@ Connected Models:
             </div>
             {% endfor %}
             <div class="job-item text-center" onclick="openAddJobModal()" style="cursor: pointer;">
-                <strong>+</strong>
+                <span>
+                    <h4>
+                        +
+                    </h4>
+                </span>
             </div>
         </div>
 

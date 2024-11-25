@@ -3,7 +3,8 @@ from django.contrib.auth import get_user_model
 from .models import Department, Job, Goal, Attendance, Leave, Address
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
-
+from datetime import date
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -16,11 +17,14 @@ class LoginForm(forms.Form):
 
 class SignupForm(forms.ModelForm):
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-control"}), label="Password"
+        widget=forms.PasswordInput(attrs={"class": "form-control"}),
+        label="Password",
+        required=True
     )
     password_confirm = forms.CharField(
         widget=forms.PasswordInput(attrs={"class": "form-control"}),
         label="Confirm Password",
+        required=True
     )
 
     class Meta:
@@ -42,6 +46,14 @@ class SignupForm(forms.ModelForm):
             "email": "Email",
             "password": "Password",
         }
+
+    def __init__(self, *args, **kwargs):
+        super(SignupForm, self).__init__(*args, **kwargs)
+        # Make all fields required
+        for field_name in self.fields:
+            self.fields[field_name].required = True
+            if 'class' not in self.fields[field_name].widget.attrs:
+                self.fields[field_name].widget.attrs['class'] = 'form-control'
 
     def clean(self):
         cleaned_data = super().clean()
@@ -185,11 +197,57 @@ class JobForm(forms.ModelForm):
 
 # Goal Management Forms
 class GoalForm(forms.ModelForm):
+    due_date = forms.DateTimeField(
+        required=True,
+        widget=forms.DateTimeInput(
+            attrs={
+                'type': 'text',
+                'class': 'form-control flatpickr-datetime',
+                'data-enable-time': 'true',
+                'data-time_24hr': 'true',
+                'data-min-date': 'today',
+                'data-date-format': 'Y-m-d H:i',
+                'placeholder': 'Select date and time',
+                'autocomplete': 'off',
+            }
+        ),
+        error_messages={
+            'required': 'Please select a due date and time.',
+            'invalid': 'Please enter a valid date and time.',
+        }
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(GoalForm, self).__init__(*args, **kwargs)
+        self.fields['description'].required = True
+        self.fields['description'].widget.attrs.update({
+            'rows': 3,
+            'style': 'resize: vertical;',
+            'placeholder': 'Describe your goal in detail...',
+            'class': 'form-control',
+        })
+
+    def clean_description(self):
+        description = self.cleaned_data.get('description')
+        if not description or not description.strip():
+            raise forms.ValidationError("Please enter a goal description.")
+        return description.strip()
+
+    def clean_due_date(self):
+        due_date = self.cleaned_data.get('due_date')
+        if not due_date:
+            raise forms.ValidationError("Please select a due date and time.")
+        if due_date < timezone.now():
+            raise forms.ValidationError("Due date cannot be in the past.")
+        return due_date
+
     class Meta:
         model = Goal
         fields = ["description", "due_date"]
-        widgets = {
-            "due_date": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+        error_messages = {
+            'description': {
+                'required': "Please enter a goal description.",
+            },
         }
 
 
@@ -228,3 +286,25 @@ class LeaveForm(forms.ModelForm):
     class Meta:
         model = Leave
         fields = ["leave_type", "start_date", "end_date", "reason"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set minimum date to today for both start and end date
+        today = date.today().strftime('%Y-%m-%d')
+        self.fields['start_date'].widget.attrs['min'] = today
+        self.fields['end_date'].widget.attrs['min'] = today
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        today = date.today()
+
+        if start_date:
+            if start_date < today:
+                self.add_error('start_date', 'Leave cannot be requested for past dates.')
+            
+            if end_date and end_date < start_date:
+                self.add_error('end_date', 'End date must be after start date.')
+
+        return cleaned_data

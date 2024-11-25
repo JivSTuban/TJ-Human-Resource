@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import RegexValidator
+from cloudinary.models import CloudinaryField
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from PIL import Image
@@ -51,14 +52,15 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        """Create and return a superuser with an email and password."""
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('status', 'APPROVED')
+        extra_fields.setdefault('role', 'ADMIN')
 
-        if extra_fields.get("is_staff") is not True:
-            raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
 
         return self.create_user(email, password, **extra_fields)
 
@@ -82,8 +84,8 @@ class User(AbstractUser):
 
     # Additional fields
     phone_regex = RegexValidator(
-        regex=r"^\+?1?\d{9,15}$",
-        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.",
+        regex=r'^\+?1?\d{9,15}$',
+        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."
     )
     phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True)
     address = models.OneToOneField(
@@ -91,7 +93,7 @@ class User(AbstractUser):
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="EMPLOYEE")
     date_of_hire = models.DateField(blank=True, null=True)
-    profile_path = models.ImageField(null=True, blank=True)
+    profile_path = CloudinaryField('profile_picture', folder='profiles', null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
     job = models.ForeignKey(Job, on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -116,56 +118,56 @@ class User(AbstractUser):
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["first_name", "last_name", "date_of_hire", "password"]
+    REQUIRED_FIELDS = ["first_name", "last_name", "date_of_hire"]
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
-    
     def save(self, *args, **kwargs):
-         # Check if the user is a superuser
+        # If this is a new user or the profile picture has changed
+        if self.pk is None or (
+            self.pk and User.objects.filter(pk=self.pk).exists() and 
+            User.objects.get(pk=self.pk).profile_path != self.profile_path
+        ):
+            # Import and invalidate cache only when needed to avoid circular imports
+            from .face_recognition_utils import invalidate_face_encodings_cache
+            invalidate_face_encodings_cache()
+            
+        # Check if the user is a superuser
         if self.is_superuser:
             self.status = "APPROVED"
             self.role = "ADMIN"
 
-        # Check if the profile picture has changed
-        if self.pk:
-            old_profile = User.objects.get(pk=self.pk)
-            if old_profile.profile_path and old_profile.profile_path != self.profile_path:
-                # Delete the old photo if it exists
-                old_profile_path = os.path.join(settings.MEDIA_ROOT, old_profile.profile_path.name)
-                if os.path.exists(old_profile_path):
-                    os.remove(old_profile_path)
-
-                # Rename the uploaded image to the current date and time
-                if self.profile_path:
-                    ext = os.path.splitext(self.profile_path.name)[1]
-                    new_filename = timezone.now().strftime('%Y%m%d%H%M%S') + ext
-                    self.profile_path.name = os.path.join('profiles', new_filename)
-
         super().save(*args, **kwargs)
-
-        # Resize the image if it exists
-        if self.profile_path and os.path.exists(self.profile_path.path):
-            try:
-                img = Image.open(self.profile_path.path)
-                output_size = (300, 300)
-                img.thumbnail(output_size)
-                img.save(self.profile_path.path)
-            except FileNotFoundError:
-                print(f"File not found: {self.profile_path.path}")
 
 
 # Log Related Models
 class Log(models.Model):
     profile = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    photo = models.ImageField(upload_to='logs')
+    photo = CloudinaryField('photo', folder='attendance_logs')
     is_correct = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return str(self.id)
-    
+        return f"{self.profile} - {self.created.strftime('%Y-%m-%d %H:%M:%S')}"
+
+    def save(self, *args, **kwargs):
+        # Set options for Cloudinary upload
+        options = {
+            'quality': 95,  # High quality
+            'width': 800,   # Max width
+            'height': 800,  # Max height
+            'crop': 'limit',  # Resize without cropping
+            'folder': 'attendance_logs'  # Cloudinary folder
+        }
+        
+        # If this is a new photo being uploaded
+        if self.photo and hasattr(self.photo, 'file'):
+            # The CloudinaryField will automatically handle the upload with our options
+            self.photo.options.update(options)
+        
+        super().save(*args, **kwargs)
+
 
 # Goal Related Models
 class Goal(models.Model):
@@ -225,6 +227,6 @@ class Leave(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     def __str__(self):
         return f"{self.user} - {self.leave_type} ({self.start_date} to {self.end_date})"

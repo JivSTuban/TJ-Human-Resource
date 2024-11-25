@@ -2,19 +2,16 @@ import base64
 from datetime import datetime, timedelta, date
 from calendar import monthrange
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from .utils import is_ajax, classify_face
-from .decorators import manager_required, employee_required
-from django.urls import reverse
-from django.http import JsonResponse
-from django.contrib.messages import get_messages
 from django.contrib import messages
+from django.http import JsonResponse
 from django.core.paginator import Paginator
-from django.contrib.auth import update_session_auth_hash
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
 from django.core.files.base import ContentFile
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.contrib.messages import get_messages
 from .models import User, Department, Job, Goal, Attendance, Leave, Log
 from .forms import (
     LoginForm,
@@ -25,7 +22,11 @@ from .forms import (
     LeaveForm,
     SignupForm,
 )
+from .decorators import manager_required, employee_required
 from .filters import AttendanceFilter, LeaveFilter, GoalFilter, JobFilter, UserFilter
+from .utils import is_ajax
+from .face_recognition_utils import classify_face, classify_face_base64
+import cloudinary.uploader
 
 # Landing Page Views
 def landing_view(req):
@@ -78,51 +79,55 @@ def mark_attendance_face(request):
 
 @csrf_exempt
 def find_user_view(request):
-    if is_ajax(request):
-        photo = request.POST.get('photo')
-        if not photo:
-            return JsonResponse({'success': False, 'error': 'No photo provided'})
+    if not is_ajax(request):
+        return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+    photo = request.POST.get('photo')
+    if not photo:
+        return JsonResponse({'success': False, 'error': 'No photo provided'})
+
+    try:
+        # Extract the base64 encoded image
+        _, str_img = photo.split(';base64,')
+
+        # Classify the face directly from base64
+        email = classify_face_base64(str_img)
+        
+        if not email:
+            return JsonResponse({'success': False, 'error': 'Face not recognized'})
 
         try:
-            _, str_img = photo.split(';base64')
-            decoded_file = base64.b64decode(str_img)
-        except (ValueError, TypeError) as e:
-            return JsonResponse({'success': False, 'error': 'Invalid photo format'})
+            user = User.objects.select_related('address').get(email=email, status='APPROVED')
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'User not found or not approved'})
 
-        # Save the decoded image to the Log model
-        log_entry = Log()
-        log_entry.photo.save('upload.png', ContentFile(decoded_file))
-        log_entry.save()
+        if not user.profile_path:
+            return JsonResponse({'success': False, 'error': 'No profile picture found'})
 
-        # Classify the face using the saved photo
-        res = classify_face(log_entry.photo.path)
-        if res:
-            user_exists = User.objects.filter(email=res).exists()
-            if user_exists:
-                user = User.objects.get(email=res)
-                if user.profile_path and user.profile_path.name:
-                    log_entry.profile = user
-                    
+        # Upload to Cloudinary asynchronously
+        upload_result = cloudinary.uploader.upload(
+            f"data:image/jpeg;base64,{str_img}",
+            folder="attendance_logs",
+            quality=95,
+            width=800,
+            height=800,
+            crop="limit"
+        )
+        
+        # Create and save log entry
+        log_entry = Log.objects.create(
+            photo=upload_result['secure_url'],
+            profile=user,
+            is_correct=True
+        )
 
-                    # Authenticate the user using the custom backend
-                    if user is not None:
-                        if user.status == "REJECTED":
-                            messages.error(request, "Your account was rejected.")
-                        elif user.status == "PENDING":
-                            messages.error(request, "Your account is not approved yet.")
-                        else:
-                            login(request, user)
-                            log_entry.is_correct = True
-                            log_entry.save()
-                            # after logging in the user and saving the log entry, mark the attendance
-                            mark_attendance(request)
-                            return JsonResponse({'success': True, 'redirect_url': '/dashboard/'})
-                    else:
-                        return JsonResponse({'success': False, 'error': 'Authentication failed'})
-                else:
-                    return JsonResponse({'success': False, 'error': 'User profile has no associated profile picture'})
-        return JsonResponse({'success': False, 'error': 'User not found'})
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+        # Authenticate and mark attendance
+        login(request, user)
+        mark_attendance(request)
+        return JsonResponse({'success': True, 'redirect_url': '/dashboard/'})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 # Dashboard Views
 @login_required
@@ -143,14 +148,38 @@ def dashboard(request):
     month = selected_month_date.month
     first_day_of_month = date(year, month, 1)
     last_day_of_month = date(year, month, monthrange(year, month)[1])
+    
+    # Calculate padding days (Sunday = 0, Saturday = 6)
+    padding_days = first_day_of_month.weekday()
+    if padding_days == 6:  # If it's Sunday
+        padding_days = 0
+    else:
+        padding_days += 1  # Shift by 1 to make Sunday first day
+    
     calendar_days = []
+    
+    # Add padding days
+    for _ in range(padding_days):
+        calendar_days.append({
+            'date': None,
+            'attendance': None,
+            'is_padding': True
+        })
+    
+    # Add actual days
     current_day = first_day_of_month
-
     while current_day <= last_day_of_month:
         attendance = Attendance.objects.filter(user=request.user, date=current_day).first()
+        weekday = current_day.weekday()
+        is_weekend = weekday == 5 or weekday == 6  # Saturday = 5, Sunday = 6
+        is_today = current_day == today
+        
         calendar_days.append({
             'date': current_day,
             'attendance': attendance,
+            'is_weekend': is_weekend,
+            'is_today': is_today,
+            'is_padding': False
         })
         current_day += timedelta(days=1)
 
@@ -237,14 +266,38 @@ def employee_attendance(request):
     # Generate calendar data
     first_day_of_month = date(year, month, 1)
     last_day_of_month = date(year, month, monthrange(year, month)[1])
+    
+    # Calculate padding days (Sunday = 0, Saturday = 6)
+    padding_days = first_day_of_month.weekday()
+    if padding_days == 6:  # If it's Sunday
+        padding_days = 0
+    else:
+        padding_days += 1  # Shift by 1 to make Sunday first day
+    
     calendar_days = []
+    
+    # Add padding days
+    for _ in range(padding_days):
+        calendar_days.append({
+            'date': None,
+            'attendance': None,
+            'is_padding': True
+        })
+    
+    # Add actual days
     current_day = first_day_of_month
-
     while current_day <= last_day_of_month:
         attendance = Attendance.objects.filter(user=request.user, date=current_day).first()
+        weekday = current_day.weekday()
+        is_weekend = weekday == 5 or weekday == 6  # Saturday = 5, Sunday = 6
+        is_today = current_day == today
+        
         calendar_days.append({
             'date': current_day,
             'attendance': attendance,
+            'is_weekend': is_weekend,
+            'is_today': is_today,
+            'is_padding': False
         })
         current_day += timedelta(days=1)
 
@@ -257,24 +310,51 @@ def employee_attendance(request):
         'year': year,
         'month': month,
         'today': today,
+        'selected_month': first_day_of_month,  
     }
     return render(request, 'employee_attendance.html', context)
 
 @login_required
 def mark_attendance(request):
     today = date.today()
+    current_time = datetime.now()
+    
+    # Define shift times
+    shift_start = current_time.replace(hour=9, minute=0, second=0, microsecond=0)  # 9:00 AM
+    shift_end = current_time.replace(hour=17, minute=0, second=0, microsecond=0)   # 5:00 PM
+    grace_period = timedelta(minutes=15)  # 15 minutes grace period
+    
     attendance, created = Attendance.objects.get_or_create(
         user=request.user, date=today
     )
 
     if attendance.time_in and not attendance.time_out:
-        attendance.time_out = datetime.now()
-        attendance.status = 'PRESENT'
+        # Time out
+        attendance.time_out = current_time
+        
+        # Check if leaving early
+        if current_time < shift_end:
+            attendance.status = 'HALF_DAY'
+            messages.warning(request, f'Early departure recorded at {current_time.strftime("%I:%M %p")}')
+        else:
+            attendance.status = 'PRESENT'
+            messages.success(request, f'Time out recorded at {current_time.strftime("%I:%M %p")}')
+            
     elif not attendance.time_in:
-        attendance.time_in = datetime.now()
-        attendance.status = 'PRESENT'
+        # Time in
+        attendance.time_in = current_time
+        
+        # Check if late
+        if current_time > (shift_start + grace_period):
+            attendance.status = 'LATE'
+            messages.warning(request, f'Late arrival recorded at {current_time.strftime("%I:%M %p")}')
+        else:
+            attendance.status = 'PRESENT'
+            messages.success(request, f'Time in recorded at {current_time.strftime("%I:%M %p")}')
+    else:
+        messages.warning(request, 'You have already completed your attendance for today.')
+    
     attendance.save()
-
     return redirect('employee_attendance')
 
 # Leave Management Views
@@ -329,7 +409,10 @@ def request_leave(request):
             leave = form.save(commit=False)
             leave.user = request.user  # Set the current user as the leave requester
             leave.save()
+            messages.success(request, "Leave request submitted successfully.")
             return redirect("leaves")
+        else:
+            messages.error(request, "Please check your form inputs and try again.")
         
     storage = get_messages(request)
     for _ in storage:
@@ -362,30 +445,39 @@ def leave_detail(request, pk):
 @login_required
 def delete_leave(request, pk):
     leave = get_object_or_404(Leave, pk=pk, user=request.user)
-    if request.method == 'POST':
-        leave.delete()
-        messages.success(request, "Leave request deleted successfully.")
-        return redirect('leaves')
-    storage = get_messages(request)
-    for _ in storage:
-        pass
-    return render(request, 'leave_confirm_delete.html', {'leave': leave})
+    if leave.status != "PENDING":
+        messages.error(request, "You cannot delete a leave request that is not pending.")
+        return redirect("leaves")
+    
+    leave.delete()
+    messages.success(request, "Leave request deleted successfully.")
+    return redirect("leaves")
 
 @manager_required
 @require_POST
 def approve_leave(request, leave_id):
+    if request.user.role != "MANAGER":
+        messages.error(request, "You don't have permission to approve leave requests.")
+        return redirect("leaves")
+    
     leave = get_object_or_404(Leave, id=leave_id)
-    leave.status = 'APPROVED'
+    leave.status = "APPROVED"
     leave.save()
-    return redirect('leaves')
+    messages.success(request, f"Leave request for {leave.user.get_full_name()} has been approved.")
+    return redirect("leaves")
 
 @manager_required
 @require_POST
 def reject_leave(request, leave_id):
+    if request.user.role != "MANAGER":
+        messages.error(request, "You don't have permission to reject leave requests.")
+        return redirect("leaves")
+    
     leave = get_object_or_404(Leave, id=leave_id)
-    leave.status = 'REJECTED'
+    leave.status = "REJECTED"
     leave.save()
-    return redirect('leaves')
+    messages.error(request, f"Leave request for {leave.user.get_full_name()} has been rejected.")
+    return redirect("leaves")
 
 # Goal Management Views
 @login_required
@@ -409,22 +501,6 @@ def goal_list(request):
     return render(request, "goals.html", context)
 
 @login_required
-def goals_detail(request, pk):
-    goal = get_object_or_404(Goal, pk=pk, user=request.user)
-    if request.method == "POST":
-        form = GoalForm(request.POST, instance=goal)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Goal request updated successfully.")
-            return redirect("goals")
-    else:
-        form = GoalForm(instance=goal)
-
-    return render(request, 'goal_detail.html', {'form': form})
-
-
-
-@login_required
 def edit_goal(request, pk):
     goal = get_object_or_404(Goal, pk=pk, user=request.user)
     if request.method == 'POST':
@@ -432,11 +508,9 @@ def edit_goal(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Goal updated successfully.')
-            return redirect('goals')
-    else:
-        form = GoalForm(instance=goal)
-    return render(request, 'goal_detail.html', {'form': form, 'goal_id': pk})
-
+        else:
+            messages.error(request, 'Please check your input and try again.')
+        return redirect('goals')
 
 @login_required
 def delete_goal(request, pk):
@@ -444,32 +518,7 @@ def delete_goal(request, pk):
     if request.method == 'POST':
         goal.delete()
         messages.success(request, 'Goal deleted successfully.')
-        return redirect('goals')
-    return render(request, 'goal_confirm_delete.html', {'goal': goal})
-
-@login_required
-def goals(request):
-    goals = Goal.objects.filter(user=request.user).order_by('due_date')
-    if request.method == 'POST':
-        form = GoalForm(request.POST)
-        if form.is_valid():
-            goal = form.save(commit=False)
-            goal.user = request.user
-            goal.save()
-            messages.success(request, 'Goal added successfully.')
-            return redirect('goals')
-    else:
-        form = GoalForm()
-    
-    # Separate goals into active and completed/expired
-    active_goals = goals.filter(status__in=['ACTIVE', 'IN_PROGRESS'])
-    completed_expired_goals = goals.exclude(completed=True).order_by('due_date')
-
-    return render(request, 'goals.html', {
-        'active_goals': active_goals,
-        'completed_expired_goals': completed_expired_goals,
-        'form': form
-    })
+    return redirect('goals')
 
 @login_required
 def add_goal(request):
@@ -480,10 +529,20 @@ def add_goal(request):
             goal.user = request.user
             goal.save()
             messages.success(request, "Goal added successfully.")
-            return redirect("goals")
-    else:
-        form = GoalForm()
-    return render(request, "goal_add.html", {"form": form})
+        else:
+            for field in form:
+                for error in field.errors:
+                    messages.error(request, f"{field.label}: {error}")
+    return redirect("goals")
+
+@login_required
+def toggle_goal(request, pk):
+    goal = get_object_or_404(Goal, pk=pk, user=request.user)
+    goal.completed = not goal.completed
+    goal.save()
+    status = "completed" if goal.completed else "uncompleted"
+    messages.success(request, f"Goal marked as {status}.")
+    return redirect("goals")
 
 # Department Management Views
 @manager_required

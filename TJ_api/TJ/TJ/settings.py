@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import cloudinary
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,16 +32,18 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "api",
+    "api.apps.ApiConfig",
     "crispy_forms",
     "crispy_bootstrap5",
     "django_filters",
+    "cloudinary",  # Add this line
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -84,7 +87,10 @@ ROOT_URLCONF = "TJ.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "api" / "templates" / "api"],
+        "DIRS": [
+            BASE_DIR / "templates",
+            BASE_DIR / "api" / "templates" / "api",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -156,3 +162,92 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Cloudinary configuration
+cloudinary.config(
+    cloud_name = 'ds3etqdwk',
+    api_key = '321548455141757',
+    api_secret = 'qVUDD9kzfYCMrQc2i16uRoeOcdk',
+    secure = True
+)
+
+# Jazzmin Settings
+JAZZMIN_SETTINGS = {
+    "site_title": "TJ Human Resource",
+    "site_header": "TJ HR Admin",
+    "site_brand": "Human Resource",
+    "site_logo": "img/TJ_logo.png",
+    "login_logo": "img/TJ_logo.png",
+    "login_logo_dark": "img/TJ_logo.png",
+    "site_logo_classes": "brand-image",
+    "site_css": """
+        :root {
+            --nav-header-height: 60px;
+        }
+        .brand-image {
+            height: 50px;
+            width: auto;
+            padding: 5px;
+            max-height: var(--nav-header-height);
+            object-fit: contain;
+        }
+        .brand-link {
+            height: var(--nav-header-height);
+            display: flex;
+            align-items: center;
+        }
+    """,
+    "site_icon": "img/TJ_logo.png",
+    "welcome_sign": "Welcome to TJ Human Resource",
+    "copyright": "TJ Human Resource Ltd",
+    "search_model": ["auth.User", "auth.Group"],
+    "user_avatar": None,
+    "topmenu_links": [
+        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"model": "auth.User"},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    "show_ui_builder": True,
+    "changeform_format": "horizontal_tabs",
+}
+
+# Custom Admin Title
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-dark",
+    "accent": "accent-primary",
+    "navbar": "navbar-dark",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": False,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "darkly",
+    "dark_mode_theme": "darkly",
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
+}

@@ -1,10 +1,3 @@
-{% comment %}
-Connected Models:
-- Log: For face recognition logs and verification
-- User: For user verification and attendance marking
-- Attendance: For creating attendance records
-{% endcomment %}
-
 {% extends "hero_base.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
@@ -224,59 +217,73 @@ Connected Models:
 
     const handleCameraAccess = () => {
         if (navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({video: true})
+            const constraints = {
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: "user",
+                    aspectRatio: { ideal: 1.7777777778 }
+                }
+            };
+
+            navigator.mediaDevices.getUserMedia(constraints)
             .then((stream) => {
                 video.srcObject = stream;
-                const {height, width} = stream.getTracks()[0].getSettings();
+                video.play();
+
+                const track = stream.getVideoTracks()[0];
+                const settings = track.getSettings();
+                const width = settings.width;
+                const height = settings.height;
     
                 captureBtn.addEventListener('click', e => {
                     e.preventDefault();
                     captureBtn.classList.add('not-visible');
-                    const track = stream.getVideoTracks()[0];
 
-                    if ('ImageCapture' in window) {
-                        const imageCapture = new ImageCapture(track);
-                        imageCapture.takePhoto().then(blob => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const context = canvas.getContext('2d');
+
+                    video.style.transform = 'scaleX(-1)';
+                    
+                    context.scale(-1, 1); 
+                    context.translate(-width, 0);
+                    context.drawImage(video, 0, 0, width, height);
+
+                    canvas.toBlob(
+                        (blob) => {
                             processImage(blob, width, height);
-                        }).catch(error => {
-                            console.log('takePhoto() error: ', error);
-                        });
-                    } else {
-                        // Fallback for browsers that do not support ImageCapture
-                        const canvas = document.createElement('canvas');
-                        canvas.width = width;
-                        canvas.height = height;
-                        const context = canvas.getContext('2d');
-                        context.drawImage(video, 0, 0, width, height);
-                        canvas.toBlob(blob => {
-                            processImage(blob, width, height);
-                        });
-                    }
+                        },
+                        'image/jpeg',
+                        0.8 
+                    );
                 });
             })
             .catch(error => {
-                console.log("Something went wrong!", error);
+                console.error("Camera access error:", error);
+                alert("Could not access camera. Please check camera permissions and try again.");
             });
         }
     };
 
     const processImage = (blob, width, height) => {
-        console.log("Took photo:", blob);
-        const img = new Image(width, height);
+        const img = new Image();
+        img.style.transform = 'scaleX(-1)'; 
         img.src = URL.createObjectURL(blob);
-        image.append(img);
-    
+        image.innerHTML = ''; 
+        image.appendChild(img);
         video.classList.add('not-visible');
     
         const reader = new FileReader();
-        reader.readAsDataURL(blob);
         reader.onloadend = () => {
             const base64data = reader.result;
-            console.log(base64data);
-    
             const fd = new FormData();
             fd.append('csrfmiddlewaretoken', csrftoken);
             fd.append('photo', base64data);
+    
+            captureBtn.textContent = 'Processing...';
+            captureBtn.disabled = true;
     
             $.ajax({
                 type: 'POST',
@@ -286,39 +293,43 @@ Connected Models:
                 processData: false,
                 contentType: false,
                 success: (resp) => {
-                    console.log(resp);
                     if (resp.success) {
                         window.location.href = resp.redirect_url;
                     } else {
                         alert(resp.error);
+                        captureBtn.classList.remove('not-visible');
+                        captureBtn.textContent = 'Take Photo';
+                        captureBtn.disabled = false;
                     }
                 },
                 error: (err) => {
-                    console.log(err);
+                    console.error("Upload error:", err);
+                    alert("Error uploading photo. Please try again.");
+                    captureBtn.classList.remove('not-visible');
+                    captureBtn.textContent = 'Take Photo';
+                    captureBtn.disabled = false;
                 }
             });
         };
+        reader.readAsDataURL(blob);
     };
-    // Check and request camera permissions
+
     if (navigator.permissions) {
-        navigator.permissions.query({name: 'camera'}).then((permissionStatus) => {
+        navigator.permissions.query({name: 'camera'})
+        .then((permissionStatus) => {
             if (permissionStatus.state === 'granted') {
                 handleCameraAccess();
             } else if (permissionStatus.state === 'prompt') {
-                navigator.mediaDevices.getUserMedia({video: true})
-                .then((stream) => {
-                    handleCameraAccess();
-                })
-                .catch((error) => {
-                    console.log("Camera access denied!", error);
-                });
+                handleCameraAccess();
             } else {
-                console.log("Camera access denied!");
+                alert("Camera access denied. Please enable camera access in your browser settings.");
             }
+        })
+        .catch(() => {
+            handleCameraAccess();
         });
     } else {
-        // Fallback for browsers that do not support navigator.permissions
         handleCameraAccess();
     }
-    </script>
+</script>
 {% endblock %}
