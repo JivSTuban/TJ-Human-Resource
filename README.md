@@ -25,7 +25,7 @@ TJ's Human Resource System is a comprehensive application designed to streamline
 
 ## Project Resources
 
-- [Entity Relationship Diagram (ERD)](https://lucid.app/lucidchart/013b6572-5ae9-4f4a-bb3d-d02daf6ee185/edit?viewport_loc=-4894%2C4653%2C2528%2C1520%2C0_0&invitationId=inv_4a4705f6-0406-42c7-bb19-8468e7325180) (Deprecated)
+- [Entity Relationship Diagram (ERD)](https://mermaid.live/view#pako:eNqlVk1v2zAM_SuGzy3QFQs25FagWIF1hwJDL0MAgbGYWJ0tGhLdLWv630f5I_Fnmm4-GJYeRT49UaRf4oQ0xssY3a2BrYN8ZSN5brEAxzlajvb7y0t6ib7SOlpGKfjaIAwb5NGjEwjzIqNdA99o7dD7ymS_b00Oq6txs_yOIJvDbpjRarAJzll8Q3ieB2k7gl5rCEpO1Z2jshCLNWZkt14xzRg-oMuN94Zs628k00s9Ex4jQ6Ojh_vj1DO4JAUXWcgxeryPVvGHq6tVXBu8tu6CqOf5YcMZ9r2Eh_E3Rxp94kzBwrbvSx_YKnH75X4QvT2z8xh4dogsFK4Xiy6FFk8M78YEDyiVlt0Jgz-mUCE1Q4CxUNUBnccTczBZRfPjVJwiJYvKlvlaPAqbT12j4BZqVbqKddc7as6hu04DY_VStFGpcTgR19HGZKgK4HRKXODS9_be8nmi9RyXjXGeVZViwmgxqWsGsyZrkr2AjYxXEn-zmUQgYfOM04vKAl0pJ9MXgk3eiPFExqKeQCtSGW2NnRAKvP9FTge-159HmVBVj9OZcPpSBMJDQY-0S1RhMN5vQlLukCe3kziUT62AJ8Cy0D3weP2Ote70ft5kHV6qq2UfoZLPzrhDJg_I1mX333geUjH4ULwrQi4uxmGFkuOB_BUgMg2mqyMW1T3Zd23tP44r9Ja3999e8xkJpPq0PWdwmRJyDhOepzug0-ln7-hEvRrQ99Vpee9yONcOpJa3Ia9GRS0hy6EthWTo9ab4Is6FCBgt_ygVj1XMKea4ipfyqcH9DL6CnbCm7zubxEt2JV7EosU2jZcbyLyM6nNs_nFakwLsD6K8MXr9C4QQum0)
 - [Figma Prototype](https://www.figma.com/design/vYqzDNNCFrjzlPUTO85SRz/TJ's?node-id=0-1&t=kUjXV1fHD6GGX0YA-1)
 - [Gantt Chart](https://docs.google.com/spreadsheets/d/1PTAUDENq60aPlKM9Gkx5v6iif7RqV7ZHYX3kAwddXdo/edit?gid=187229779#gid=187229779)
 - [Project Requirements](https://docs.google.com/document/d/1L9y0qh8n7GNmuDfBt7LZExpDAC30pVNC1ANz6pzKzRE/edit)
